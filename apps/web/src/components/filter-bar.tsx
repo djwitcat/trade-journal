@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { dayKeyOf, FILTER_KEYS, readFilters, type AnalysisFilters } from "@luxalgo/journal-core";
@@ -44,6 +45,7 @@ export const useFilters = () => {
 };
 export type Filters = ReturnType<typeof useFilters>;
 export function FilterBar({ title, actions }: { title: string; actions?: React.ReactNode }) {
+  const t = useTranslations("extracted");
   const router = useRouter(),
     pathname = usePathname(),
     params = useSearchParams();
@@ -92,14 +94,15 @@ export function FilterBar({ title, actions }: { title: string; actions?: React.R
             <Button
               variant="outline"
               size="sm"
-              title="Filter by dates, symbols, strategy, outcome, and more. All selected conditions must match."
+              title={t("components_filter_bar_filter_by_dates_symbols_strategy_10dd6c")}
               onClick={() => {
                 setDraft(filters.values);
                 setOpen(true);
               }}
             >
               <SlidersHorizontal className="h-3.5 w-3.5" />
-              Filters{count > 0 ? ` · ${count}` : ""}
+              {t("components_filter_bar_filters_96e578")}
+              {count > 0 ? ` · ${count}` : ""}
             </Button>
           </>
         )}
@@ -119,11 +122,11 @@ export function FilterBar({ title, actions }: { title: string; actions?: React.R
         >
           <DialogHeader className="journal-filter-heading">
             <DialogTitle ref={filterTitle} tabIndex={-1} className="outline-none">
-              Filter your journal
+              {t("components_filter_bar_filter_your_journal_62b8e5")}
             </DialogTitle>
             <DialogDescription className="journal-filter-description">
-              Times use {filters.timeZone}. Dates use the closing day, or opening day for open
-              trades. All selected conditions must match.
+              {t("components_filter_bar_times_use_6ea9f5")} {filters.timeZone}
+              {t("components_filter_bar_dates_use_the_closing_day_or_ope_55474b")}
             </DialogDescription>
           </DialogHeader>
           <div className="journal-filter-body">
@@ -135,10 +138,10 @@ export function FilterBar({ title, actions }: { title: string; actions?: React.R
               className="text-muted-foreground hover:text-foreground"
               onClick={() => setDraft({})}
             >
-              Clear filters
+              {t("components_filter_bar_clear_filters_412226")}
             </Button>
             <Button className="min-w-28" onClick={apply}>
-              Apply filters
+              {t("components_filter_bar_apply_filters_926161")}
             </Button>
           </div>
         </DialogContent>

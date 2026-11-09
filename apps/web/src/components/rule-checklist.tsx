@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { OptionSelect } from "@/components/ui/option-select";
 
 import { useState } from "react";
@@ -12,6 +13,7 @@ export function RuleChecklist({
   tradeKey: string;
   playbookId: string | null;
 }) {
+  const t = useTranslations("extracted");
   const url = `/api/trades/${encodeURIComponent(tradeKey)}/rules`;
   const { data, error, refresh } = useApi<{
       name: string | null;
@@ -23,7 +25,7 @@ export function RuleChecklist({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Strategy rule review</CardTitle>
+        <CardTitle>{t("components_rule_checklist_strategy_rule_review_a296e8")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {data?.name ? (
@@ -33,11 +35,12 @@ export function RuleChecklist({
               {evaluated.length
                 ? `${Math.round((followed / evaluated.length) * 100)}% followed · `
                 : ""}
-              {evaluated.length}/{data.rules.length} rules assessed
+              {evaluated.length}/{data.rules.length}{" "}
+              {t("components_rule_checklist_rules_assessed_641f82")}
             </p>
             {data.rules.length === 0 && (
               <p className="text-xs text-muted-foreground">
-                Add rules to this playbook to review adherence.
+                {t("components_rule_checklist_add_rules_to_this_playbook_to_re_efef07")}
               </p>
             )}
             {data.rules.map((r) => (
@@ -63,16 +66,18 @@ export function RuleChecklist({
                     }
                   }}
                 >
-                  <option value="unreviewed">Not assessed</option>
-                  <option value="true">Followed</option>
-                  <option value="false">Broken</option>
+                  <option value="unreviewed">
+                    {t("components_rule_checklist_not_assessed_e02dc9")}
+                  </option>
+                  <option value="true">{t("components_rule_checklist_followed_68aa26")}</option>
+                  <option value="false">{t("components_rule_checklist_broken_3ad465")}</option>
                 </OptionSelect>
               </label>
             ))}
           </>
         ) : (
           <p className="text-xs text-muted-foreground">
-            Assign a playbook to check its rules for this trade.
+            {t("components_rule_checklist_assign_a_playbook_to_check_its_r_df6a6e")}
           </p>
         )}
         {(error || failure) && (

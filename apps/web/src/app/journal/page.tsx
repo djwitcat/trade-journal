@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { dayKeyOf } from "@luxalgo/journal-core";
 import { Suspense, useEffect, useState } from "react";
@@ -36,6 +37,7 @@ export default function JournalPage() {
 }
 
 function Journal() {
+  const t = useTranslations("extracted");
   const { query, timeZone } = useFilters();
   const { data, error, refresh } = useApi<{ days: JournalDay[] }>(`/api/journal?${query}`);
   // Reset the visible window immediately when filters change. Keep every day
@@ -47,13 +49,13 @@ function Journal() {
   return (
     <div>
       <FilterBar
-        title="Daily journal"
+        title={t("app_journal_page_daily_journal_853c6b")}
         actions={
           <Link
             href={`/journal/${dayKeyOf(new Date().toISOString(), timeZone)}?${query}`}
             className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
           >
-            View my day
+            {t("app_journal_page_view_my_day_cdaea6")}
           </Link>
         }
       />
@@ -62,17 +64,17 @@ function Journal() {
           <div role="alert" className="space-y-2 text-sm text-destructive">
             <p>{error}</p>
             <Button variant="outline" onClick={refresh}>
-              Try again
+              {t("app_journal_page_try_again_042c86")}
             </Button>
           </div>
         ) : !data ? (
-          <div role="status" aria-label="Loading journal">
+          <div role="status" aria-label={t("app_journal_page_loading_journal_cc245e")}>
             <Skeleton className="h-48" />
           </div>
         ) : null}
         {data?.days.length === 0 && (
           <p className="py-16 text-center text-sm text-muted-foreground">
-            No trading days yet — import trades or write your first day note.
+            {t("app_journal_page_no_trading_days_yet_import_trade_589986")}
           </p>
         )}
         {data?.days.slice(0, limit).map((day) => (
@@ -89,26 +91,31 @@ function Journal() {
                   <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-5 gap-y-2 text-sm">
                     <Pnl value={day.stats.netPnl} className="w-24 font-semibold" />
                     <span className="text-muted-foreground">
-                      {day.stats.trades} trade{day.stats.trades === 1 ? "" : "s"}
+                      {day.stats.trades} {t("app_journal_page_trade_6f3eb7")}
+                      {day.stats.trades === 1 ? "" : "s"}
                     </span>
                     <span className="text-muted-foreground">
                       {fmtPercent(
                         day.stats.trades > 0 ? day.stats.wins / day.stats.trades : null,
                         0,
                       )}{" "}
-                      win
+                      {t("app_journal_page_win_c76ac2")}
                     </span>
                     <span className="text-muted-foreground">
-                      {day.stats.wins}W / {day.stats.losses}L
+                      {day.stats.wins}
+                      {t("app_journal_page_w_187c54")} {day.stats.losses}
+                      {t("app_journal_page_l_d160e0")}
                     </span>
                   </div>
                 ) : (
-                  <div className="flex-1 text-sm text-muted-foreground">No trades</div>
+                  <div className="flex-1 text-sm text-muted-foreground">
+                    {t("app_journal_page_no_trades_1c9289")}
+                  </div>
                 )}
                 {day.hasNote && (
                   <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <NotebookPen className="h-3.5 w-3.5" />
-                    note
+                    {t("app_journal_page_note_c51048")}
                   </span>
                 )}
               </CardContent>
@@ -118,7 +125,9 @@ function Journal() {
         {data && data.days.length > PAGE_SIZE && (
           <div className="flex flex-wrap items-center justify-between gap-3 py-2 text-xs text-muted-foreground">
             <span role="status">
-              Showing {Math.min(limit, data.days.length)} of {data.days.length} days
+              {t("app_journal_page_showing_163d81")} {Math.min(limit, data.days.length)}{" "}
+              {t("app_journal_page_of_de04fa")} {data.days.length}{" "}
+              {t("app_journal_page_days_5548ae")}
             </span>
             {limit < data.days.length && (
               <Button
@@ -126,7 +135,7 @@ function Journal() {
                 size="sm"
                 onClick={() => setVisibleWindow({ query, limit: limit + PAGE_SIZE })}
               >
-                Show older days
+                {t("app_journal_page_show_older_days_049186")}
               </Button>
             )}
           </div>

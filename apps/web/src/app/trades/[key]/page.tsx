@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { AiNotice } from "@/components/ai-notice";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -91,6 +92,7 @@ export default function TradePage({ params }: { params: Promise<{ key: string }>
 }
 
 function TradeView({ tradeKey }: { tradeKey: string }) {
+  const t = useTranslations("extracted");
   const { data, error, refresh } = useApi<{
     trade: TradeDetail;
     executions: ExecutionRow[];
@@ -103,7 +105,7 @@ function TradeView({ tradeKey }: { tradeKey: string }) {
   if (!data) {
     return (
       <div>
-        <FilterBar title="Trade" />
+        <FilterBar title={t("app_trades_key_page_trade_b0811e")} />
         <div className="p-4">
           {error ? (
             <p role="alert" className="text-sm text-destructive">
@@ -152,7 +154,7 @@ function TradeView({ tradeKey }: { tradeKey: string }) {
       const result = await postJson<{ critique: string }>("/api/ai/critique", { key: tradeKey });
       setCritique(result.critique);
     } catch (error) {
-      setAiError(error instanceof Error ? error.message : "AI critique failed");
+      setAiError(error instanceof Error ? error.message : t("trade_ai_failed"));
     } finally {
       setAiBusy(false);
     }
@@ -169,7 +171,9 @@ function TradeView({ tradeKey }: { tradeKey: string }) {
           <Card>
             <CardContent className="flex flex-wrap items-center gap-x-8 gap-y-3 py-4">
               <div>
-                <div className="text-xs text-muted-foreground">Net P&L</div>
+                <div className="text-xs text-muted-foreground">
+                  {t("app_trades_key_page_net_p_l_152aa9")}
+                </div>
                 <Pnl value={trade.netPnl} className="text-2xl font-semibold" />
               </div>
               <Badge
@@ -180,23 +184,44 @@ function TradeView({ tradeKey }: { tradeKey: string }) {
               >
                 {trade.status.toUpperCase()}
               </Badge>
-              <Meta label="Gross" value={fmtMoney(trade.grossPnl)} monetary />
-              <Meta label="Fees" value={fmtMoney(trade.fees)} monetary />
-              <Meta label="Volume" value={fmtNumber(trade.quantity, 4)} />
-              <Meta label="Avg entry" value={fmtNumber(trade.avgEntry)} monetary />
               <Meta
-                label="Avg exit"
+                label={t("app_trades_key_page_gross_9580a6")}
+                value={fmtMoney(trade.grossPnl)}
+                monetary
+              />
+              <Meta
+                label={t("app_trades_key_page_fees_72abbc")}
+                value={fmtMoney(trade.fees)}
+                monetary
+              />
+              <Meta
+                label={t("app_trades_key_page_volume_3b18e8")}
+                value={fmtNumber(trade.quantity, 4)}
+              />
+              <Meta
+                label={t("app_trades_key_page_avg_entry_df4b48")}
+                value={fmtNumber(trade.avgEntry)}
+                monetary
+              />
+              <Meta
+                label={t("app_trades_key_page_avg_exit_049012")}
                 monetary
                 value={trade.avgExit === null ? "open" : fmtNumber(trade.avgExit)}
               />
-              <Meta label="Duration" value={fmtDuration(trade.durationMs)} />
-              <Meta label="Net / entry notional" value={fmtPercent(netReturnOnEntry(trade), 2)} />
               <Meta
-                label="Planned R"
+                label={t("app_trades_key_page_duration_137000")}
+                value={fmtDuration(trade.durationMs)}
+              />
+              <Meta
+                label={t("app_trades_key_page_net_entry_notional_d8aa65")}
+                value={fmtPercent(netReturnOnEntry(trade), 2)}
+              />
+              <Meta
+                label={t("app_trades_key_page_planned_r_c55d9b")}
                 value={trade.plannedR === null ? "–" : `${fmtNumber(trade.plannedR)}R`}
               />
               <Meta
-                label="Realized R"
+                label={t("app_trades_key_page_realized_r_0de477")}
                 value={trade.realizedR === null ? "–" : `${fmtNumber(trade.realizedR)}R`}
               />
             </CardContent>
@@ -207,8 +232,10 @@ function TradeView({ tradeKey }: { tradeKey: string }) {
           {runningPnl.length > 1 && (
             <Card>
               <CardHeader>
-                <CardTitle>Running P&L</CardTitle>
-                <p className="text-xs text-muted-foreground">Times in {timeZone}</p>
+                <CardTitle>{t("app_trades_key_page_running_p_l_6273f8")}</CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  {t("app_trades_key_page_times_in_35f535")} {timeZone}
+                </p>
               </CardHeader>
               <CardContent>
                 <EquityArea data={runningPnl} height={180} />
@@ -218,18 +245,20 @@ function TradeView({ tradeKey }: { tradeKey: string }) {
 
           <Card>
             <CardHeader>
-              <CardTitle>Executions</CardTitle>
-              <p className="text-xs text-muted-foreground">Times in {timeZone}</p>
+              <CardTitle>{t("app_trades_key_page_executions_8999e5")}</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                {t("app_trades_key_page_times_in_35f535")} {timeZone}
+              </p>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Time</TableHead>
-                    <TableHead>Side</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Fee</TableHead>
+                    <TableHead>{t("app_trades_key_page_time_6c82e6")}</TableHead>
+                    <TableHead>{t("app_trades_key_page_side_265283")}</TableHead>
+                    <TableHead>{t("app_trades_key_page_quantity_44f6af")}</TableHead>
+                    <TableHead>{t("app_trades_key_page_price_3e8248")}</TableHead>
+                    <TableHead>{t("app_trades_key_page_fee_c6e89c")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -265,10 +294,10 @@ function TradeView({ tradeKey }: { tradeKey: string }) {
           <RuleChecklist tradeKey={trade.key} playbookId={trade.playbookId} />
           <Card>
             <CardHeader className="flex-row items-center justify-between">
-              <CardTitle>AI review</CardTitle>
+              <CardTitle>{t("app_trades_key_page_ai_review_c8c27c")}</CardTitle>
               <Button variant="outline" size="sm" onClick={askCritique} disabled={aiBusy}>
                 <Sparkles />
-                {aiBusy ? "Thinking…" : "Critique this trade"}
+                {aiBusy ? t("trade_ai_thinking") : t("trade_ai_critique")}
               </Button>
             </CardHeader>
             {aiError && (
@@ -318,6 +347,7 @@ function AnnotationsCard({
   trade: TradeDetail;
   onPatch: (body: Record<string, unknown>) => Promise<void>;
 }) {
+  const t = useTranslations("extracted");
   const [notes, setNotes] = useState(trade.notes ?? "");
   const noteEditor = useRef<RichEditorHandle>(null);
   const [tags, setTags] = useState((JSON.parse(trade.tagsJson ?? "[]") as string[]).join(", "));
@@ -344,7 +374,7 @@ function AnnotationsCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Journal this trade</CardTitle>
+        <CardTitle>{t("app_trades_key_page_journal_this_trade_6c9224")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex items-center justify-between">
@@ -354,13 +384,15 @@ function AnnotationsCard({
               checked={trade.reviewedAt !== null}
               onCheckedChange={(checked) => void onPatch({ reviewed: checked === true })}
             />
-            Reviewed
+            {t("app_trades_key_page_reviewed_31ef85")}
           </label>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="text-xs text-muted-foreground">Stop loss</label>
+            <label className="text-xs text-muted-foreground">
+              {t("app_trades_key_page_stop_loss_ecfdc4")}
+            </label>
             <MonetaryField>
               <Input
                 value={stopLoss}
@@ -370,13 +402,15 @@ function AnnotationsCard({
                     stopLoss: event.target.value === "" ? null : Number(event.target.value),
                   });
                 }}
-                placeholder="planned stop"
+                placeholder={t("app_trades_key_page_planned_stop_0560e5")}
                 inputMode="decimal"
               />
             </MonetaryField>
           </div>
           <div>
-            <label className="text-xs text-muted-foreground">Profit target</label>
+            <label className="text-xs text-muted-foreground">
+              {t("app_trades_key_page_profit_target_7bec5f")}
+            </label>
             <MonetaryField>
               <Input
                 value={profitTarget}
@@ -386,7 +420,7 @@ function AnnotationsCard({
                     profitTarget: event.target.value === "" ? null : Number(event.target.value),
                   });
                 }}
-                placeholder="planned target"
+                placeholder={t("app_trades_key_page_planned_target_eb10ae")}
                 inputMode="decimal"
               />
             </MonetaryField>
@@ -394,16 +428,18 @@ function AnnotationsCard({
         </div>
 
         <div>
-          <label className="text-xs text-muted-foreground">Playbook</label>
+          <label className="text-xs text-muted-foreground">
+            {t("app_trades_key_page_playbook_06645f")}
+          </label>
           <Select
             value={trade.playbookId ?? "none"}
             onValueChange={(value) => void onPatch({ playbookId: value === "none" ? null : value })}
           >
             <SelectTrigger>
-              <SelectValue placeholder="No playbook" />
+              <SelectValue placeholder={t("app_trades_key_page_no_playbook_7455d9")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">No playbook</SelectItem>
+              <SelectItem value="none">{t("app_trades_key_page_no_playbook_7455d9")}</SelectItem>
               {playbookData?.playbooks.map((playbook) => (
                 <SelectItem key={playbook.id} value={playbook.id}>
                   {playbook.name}
@@ -414,31 +450,37 @@ function AnnotationsCard({
         </div>
 
         <div>
-          <label className="text-xs text-muted-foreground">Tags (comma-separated)</label>
+          <label className="text-xs text-muted-foreground">
+            {t("app_trades_key_page_tags_comma_separated_32bf67")}
+          </label>
           <Input
             value={tags}
             onChange={(event) => {
               setTags(event.target.value);
               debounced({ tags: parseList(event.target.value) });
             }}
-            placeholder="breakout, A+ setup"
+            placeholder={t("app_trades_key_page_breakout_a_setup_fe0728")}
           />
         </div>
         <div>
-          <label className="text-xs text-muted-foreground">Mistakes</label>
+          <label className="text-xs text-muted-foreground">
+            {t("app_trades_key_page_mistakes_7868f6")}
+          </label>
           <Input
             value={mistakes}
             onChange={(event) => {
               setMistakes(event.target.value);
               debounced({ mistakes: parseList(event.target.value) });
             }}
-            placeholder="chased entry, moved stop"
+            placeholder={t("app_trades_key_page_chased_entry_moved_stop_6ad6ce")}
           />
         </div>
 
         <div>
           <div className="mb-1 flex items-center justify-between">
-            <label className="text-xs text-muted-foreground">Notes</label>
+            <label className="text-xs text-muted-foreground">
+              {t("app_trades_key_page_notes_704400")}
+            </label>
             <VoiceNote
               onPrepare={() => noteEditor.current?.focus()}
               onText={(text) => {
@@ -459,20 +501,32 @@ function AnnotationsCard({
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span role="status">{saveStatus}</span>
             <Button variant="ghost" size="sm" onClick={() => void flush()}>
-              Save now
+              {t("app_trades_key_page_save_now_3989b7")}
             </Button>
           </div>
           <ReviewExport
             containsFinancialData
             document={{
-              title: `${trade.symbol} · ${trade.direction} review`,
+              title: t("trade_export_title", { symbol: trade.symbol, direction: trade.direction }),
               subtitle: `${trade.openedAt} · ${trade.currency}`,
               lines: [
-                `Status: ${trade.status} | Quantity: ${trade.quantity}`,
-                `Entry: ${trade.avgEntry} | Exit: ${trade.avgExit ?? "Open"}`,
-                `Net P&L: ${trade.netPnl.toFixed(2)} | Fees: ${trade.fees.toFixed(2)}`,
-                `Stop: ${stopLoss || "Unspecified"} | Target: ${profitTarget || "Unspecified"}`,
-                `Tags: ${tags || "None"} | Mistakes: ${mistakes || "None"}`,
+                t("trade_export_status", { status: trade.status, quantity: trade.quantity }),
+                t("trade_export_entry", {
+                  entry: trade.avgEntry,
+                  exit: trade.avgExit ?? t("trade_export_open"),
+                }),
+                t("trade_export_pnl", {
+                  pnl: trade.netPnl.toFixed(2),
+                  fees: trade.fees.toFixed(2),
+                }),
+                t("trade_export_targets", {
+                  stop: stopLoss || t("trade_export_unspecified"),
+                  target: profitTarget || t("trade_export_unspecified"),
+                }),
+                t("trade_export_annotations", {
+                  tags: tags || t("trade_export_none"),
+                  mistakes: mistakes || t("trade_export_none"),
+                }),
                 "",
                 notes,
               ],

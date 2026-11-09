@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import { useId } from "react";
 import {
@@ -26,7 +27,7 @@ export function EquityArea({
   data,
   height = 240,
   valueFormat = "money",
-  valueLabel = "Cumulative P&L",
+  valueLabel,
   currency = "USD",
   curve = "monotone",
 }: {
@@ -38,6 +39,8 @@ export function EquityArea({
   curve?: "monotone" | "stepAfter";
 }) {
   const t = useVizTokens();
+  const translate = useTranslations("extracted");
+  valueLabel ??= translate("chart_cumulative_pnl");
   const id = useId().replace(/:/g, "");
   const privacy = usePrivacy();
   const privateMode = privacy && valueFormat === "money";
@@ -91,7 +94,10 @@ export function EquityArea({
           <Tooltip
             contentStyle={tooltipStyle(t)}
             labelFormatter={(value) => String(value).slice(0, 10)}
-            formatter={(value) => [privateMode ? "Hidden" : formatValue(Number(value)), valueLabel]}
+            formatter={(value) => [
+              privateMode ? translate("chart_hidden") : formatValue(Number(value)),
+              valueLabel,
+            ]}
             cursor={{ stroke: t.inkMuted, strokeDasharray: "3 3" }}
           />
           <Area

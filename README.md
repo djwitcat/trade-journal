@@ -50,6 +50,16 @@ visit or hot-reload code edits. After code changes, stop it and rerun `pnpm prev
 rebuild; use `pnpm start` to reuse an existing build. Switch back to `pnpm dev` when editing.
 Run only one mode at a time, since development and production share the build directory.
 
+### Internationalization
+
+The app uses `next-intl` with message catalogs in `apps/web/src/i18n/messages/`. The root layout
+provides messages to client components, and UI copy across pages and components has been extracted
+to the English catalog. New UI text should use `useTranslations` from `next-intl`; server components
+can use `getTranslations` from `next-intl/server`. Run `pnpm i18n:audit` to find untranslated JSX,
+common UI attributes, and missing literal message keys. The English and Simplified Chinese catalogs
+are available. Set `JOURNAL_LOCALE=zh-CN` before starting the server to use Chinese; English is the
+default. Restart the development server or rebuild for production after changing this setting.
+
 ### Try it with demo data
 
 On an empty dashboard, choose **Load demo data** to create a separate demo account with about 90 days of generated trades. You can remove that account later in **Accounts**.

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -71,6 +72,7 @@ export default function TradesPage() {
 }
 
 function Trades() {
+  const t = useTranslations("extracted");
   const { query } = useFilters();
   const { data, error, refresh } = useApi<{
     trades: TradeRow[];
@@ -100,7 +102,7 @@ function Trades() {
                   : false
             }
             onCheckedChange={(value) => table.toggleAllRowsSelected(value === true)}
-            aria-label="Select all matching trades"
+            aria-label={t("app_trades_page_select_all_matching_trades_0e8a29")}
           />
         ),
         cell: ({ row }) => (
@@ -108,24 +110,26 @@ function Trades() {
             checked={row.getIsSelected()}
             onCheckedChange={(value) => row.toggleSelected(value === true)}
             onClick={(event) => event.stopPropagation()}
-            aria-label="Select trade"
+            aria-label={t("app_trades_page_select_trade_5dca15")}
           />
         ),
       },
       {
         id: "closedAt",
         accessorKey: "closedAt",
-        header: "Close date",
+        header: t("app_trades_page_close_date_bdfb24"),
         cell: ({ getValue }) => (
           <span className="text-muted-foreground">
-            {getValue<string | null>() ? dayKeyOf(getValue<string>(), timeZone) : "open"}
+            {getValue<string | null>()
+              ? dayKeyOf(getValue<string>(), timeZone)
+              : t("app_trades_page_open_5fc7e3")}
           </span>
         ),
       },
       {
         id: "symbol",
         accessorKey: "symbol",
-        header: "Symbol",
+        header: t("app_trades_page_symbol_3f84ef"),
         cell: ({ row, getValue }) => (
           <span className="flex items-center gap-2 font-medium">
             {getValue<string>()}
@@ -136,7 +140,7 @@ function Trades() {
       {
         id: "status",
         accessorKey: "status",
-        header: "Status",
+        header: t("app_trades_page_status_bae7d5"),
         cell: ({ getValue }) => {
           const status = getValue<string>();
           return (
@@ -149,13 +153,13 @@ function Trades() {
       {
         id: "quantity",
         accessorKey: "quantity",
-        header: "Volume",
+        header: t("app_trades_page_volume_3b18e8"),
         cell: ({ getValue }) => <span className="tnum">{fmtNumber(getValue<number>(), 4)}</span>,
       },
       {
         id: "avgEntry",
         accessorKey: "avgEntry",
-        header: "Entry",
+        header: t("app_trades_page_entry_19172e"),
         cell: ({ getValue }) => (
           <span className="tnum">
             <MonetaryValue>{fmtNumber(getValue<number>())}</MonetaryValue>
@@ -165,7 +169,7 @@ function Trades() {
       {
         id: "avgExit",
         accessorKey: "avgExit",
-        header: "Exit",
+        header: t("app_trades_page_exit_f83b6f"),
         cell: ({ getValue }) => (
           <span className="tnum">
             <MonetaryValue>
@@ -177,7 +181,7 @@ function Trades() {
       {
         id: "netPnl",
         accessorKey: "netPnl",
-        header: "Net P&L",
+        header: t("app_trades_page_net_p_l_152aa9"),
         cell: ({ getValue }) => <Pnl value={getValue<number>()} />,
       },
       {
@@ -186,7 +190,7 @@ function Trades() {
         sortUndefined: "last",
         sortDescFirst: true,
         sortFn: "basic",
-        header: "Net ROI",
+        header: t("app_trades_page_net_roi_e2d010"),
         cell: ({ getValue }) => (
           <span className="tnum">{fmtPercent(getValue<number | undefined>() ?? null, 2)}</span>
         ),
@@ -194,7 +198,7 @@ function Trades() {
       {
         id: "fees",
         accessorKey: "fees",
-        header: "Fees",
+        header: t("app_trades_page_fees_72abbc"),
         cell: ({ getValue }) => (
           <span className="tnum text-muted-foreground">
             <MonetaryValue>{fmtMoney(getValue<number>())}</MonetaryValue>
@@ -204,7 +208,7 @@ function Trades() {
       {
         id: "durationMs",
         accessorKey: "durationMs",
-        header: "Duration",
+        header: t("app_trades_page_duration_137000"),
         cell: ({ getValue }) => (
           <span className="text-muted-foreground">{fmtDuration(getValue<number | null>())}</span>
         ),
@@ -212,7 +216,7 @@ function Trades() {
       {
         id: "executionCount",
         accessorKey: "executionCount",
-        header: "Execs",
+        header: t("app_trades_page_execs_3daebf"),
         cell: ({ getValue }) => (
           <span className="tnum text-muted-foreground">{getValue<number>()}</span>
         ),
@@ -221,7 +225,7 @@ function Trades() {
         id: "tags",
         accessorKey: "tags",
         enableSorting: false,
-        header: "Tags",
+        header: t("app_trades_page_tags_848eed"),
         cell: ({ getValue }) => (
           <span className="flex max-w-40 flex-wrap gap-1">
             {getValue<string[]>().map((tag) => (
@@ -235,7 +239,7 @@ function Trades() {
       {
         id: "rating",
         accessorKey: "rating",
-        header: "Rating",
+        header: t("app_trades_page_rating_6437b7"),
         cell: ({ getValue }) => {
           const rating = getValue<number | null>();
           return (
@@ -248,7 +252,7 @@ function Trades() {
       {
         id: "reviewed",
         accessorKey: "reviewed",
-        header: "Reviewed",
+        header: t("app_trades_page_reviewed_31ef85"),
         cell: ({ getValue }) =>
           getValue<boolean>() ? (
             <Check className="h-4 w-4 text-profit" />
@@ -286,18 +290,18 @@ function Trades() {
   return (
     <div>
       <FilterBar
-        title="Trades"
+        title={t("app_trades_page_trades_597b10")}
         actions={
           <div className="flex items-center gap-2">
             <a href={`/api/export?format=csv&${query}`} download>
               <Button variant="outline" size="sm">
                 <Download />
-                CSV
+                {t("app_trades_page_csv_328118")}
               </Button>
             </a>
             <Button variant="outline" size="sm" onClick={() => setShowColumns((value) => !value)}>
               <Columns3 />
-              Columns
+              {t("app_trades_page_columns_cf723c")}
             </Button>
           </div>
         }
@@ -307,16 +311,18 @@ function Trades() {
           <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 xl:grid-cols-4">
             <Card>
               <CardHeader>
-                <CardTitle>Net cumulative P&L</CardTitle>
+                <CardTitle>{t("app_trades_page_net_cumulative_p_l_881fbd")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Pnl value={m.netPnl} className="text-xl font-semibold" />
-                <span className="ml-2 text-xs text-muted-foreground">{m.closedTrades} trades</span>
+                <span className="ml-2 text-xs text-muted-foreground">
+                  {m.closedTrades} {t("app_trades_page_trades_cf7b32")}
+                </span>
               </CardContent>
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Profit factor</CardTitle>
+                <CardTitle>{t("app_trades_page_profit_factor_80e53e")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <span className="text-xl font-semibold tnum">
@@ -330,7 +336,7 @@ function Trades() {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Trade win %</CardTitle>
+                <CardTitle>{t("app_trades_page_trade_win_328ebd")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <span className="text-xl font-semibold tnum">{fmtPercent(m.winRate)}</span>
@@ -338,7 +344,7 @@ function Trades() {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Avg win / loss</CardTitle>
+                <CardTitle>{t("app_trades_page_avg_win_loss_5de6a5")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <span className="text-xl font-semibold tnum">
@@ -373,19 +379,21 @@ function Trades() {
         {selectedKeys.length > 0 && (
           <Card>
             <CardContent className="flex flex-wrap items-center gap-2 py-2">
-              <span className="text-sm text-muted-foreground">{selectedKeys.length} selected</span>
+              <span className="text-sm text-muted-foreground">
+                {selectedKeys.length} {t("app_trades_page_selected_835f3b")}
+              </span>
               <Button variant="outline" size="sm" onClick={() => bulk("review")}>
                 <Check />
-                Mark reviewed
+                {t("app_trades_page_mark_reviewed_277c92")}
               </Button>
               <Button variant="outline" size="sm" onClick={() => bulk("unreview")}>
-                Unreview
+                {t("app_trades_page_unreview_b66f58")}
               </Button>
               <div className="flex max-w-full flex-wrap items-center gap-1">
                 <Input
                   value={tagInput}
                   onChange={(event) => setTagInput(event.target.value)}
-                  placeholder="tag"
+                  placeholder={t("app_trades_page_tag_5e9b60")}
                   className="h-8 w-28 text-xs"
                 />
                 <Button
@@ -398,23 +406,19 @@ function Trades() {
                   }}
                 >
                   <Tag />
-                  Tag
+                  {t("app_trades_page_tag_982963")}
                 </Button>
               </div>
               <Button
                 variant="destructive"
                 size="sm"
                 onClick={() => {
-                  if (
-                    confirm(
-                      `Delete ${selectedKeys.length} trades and their executions? This cannot be undone.`,
-                    )
-                  )
+                  if (confirm(t("trades_confirm_bulk_delete", { count: selectedKeys.length })))
                     void bulk("delete");
                 }}
               >
                 <Trash2 />
-                Delete
+                {t("app_trades_page_delete_f6fdbe")}
               </Button>
             </CardContent>
           </Card>
@@ -424,7 +428,7 @@ function Trades() {
           <div role="alert" className="space-y-2 text-sm text-destructive">
             <p>{error}</p>
             <Button variant="outline" onClick={refresh}>
-              Try again
+              {t("app_trades_page_try_again_042c86")}
             </Button>
           </div>
         ) : !data ? (
@@ -487,9 +491,9 @@ function Trades() {
                         colSpan={columns.length}
                         className="py-16 text-center text-muted-foreground"
                       >
-                        No trades match these filters.{" "}
+                        {t("app_trades_page_no_trades_match_these_filters_6c66fd")}{" "}
                         <Link href="/import" className="underline">
-                          Import some
+                          {t("app_trades_page_import_some_b29ae6")}
                         </Link>
                         .
                       </td>
@@ -502,8 +506,9 @@ function Trades() {
               <div className="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3 text-xs text-muted-foreground">
                 <span>
                   {currentPage * pageSize + 1}–
-                  {Math.min((currentPage + 1) * pageSize, sortedRows.length)} of{" "}
-                  {fmtNumber(sortedRows.length, 0)} trades
+                  {Math.min((currentPage + 1) * pageSize, sortedRows.length)}{" "}
+                  {t("app_trades_page_of_de04fa")} {fmtNumber(sortedRows.length, 0)}{" "}
+                  {t("app_trades_page_trades_cf7b32")}
                 </span>
                 <div className="flex items-center gap-2">
                   <Button
@@ -512,10 +517,11 @@ function Trades() {
                     disabled={currentPage === 0}
                     onClick={() => setPage(currentPage - 1)}
                   >
-                    Previous
+                    {t("app_trades_page_previous_50f942")}
                   </Button>
                   <span>
-                    Page {currentPage + 1} of {pageCount}
+                    {t("app_trades_page_page_fb0627")} {currentPage + 1}{" "}
+                    {t("app_trades_page_of_de04fa")} {pageCount}
                   </span>
                   <Button
                     variant="outline"
@@ -523,7 +529,7 @@ function Trades() {
                     disabled={currentPage + 1 === pageCount}
                     onClick={() => setPage(currentPage + 1)}
                   >
-                    Next
+                    {t("app_trades_page_next_bc9819")}
                   </Button>
                 </div>
               </div>

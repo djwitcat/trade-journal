@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Suspense, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { dayKeyOf } from "@luxalgo/journal-core";
@@ -23,6 +24,7 @@ export default function CalendarPage() {
 }
 
 function CalendarView() {
+  const t = useTranslations("extracted");
   const { query, timeZone } = useFilters();
   const [selection, setMonth] = useState<{ year: number; month: number } | null>(null);
   const { data, error, refresh } = useApi<CalendarResponse>(
@@ -40,7 +42,7 @@ function CalendarView() {
   return (
     <div>
       <FilterBar
-        title="Calendar"
+        title={t("app_calendar_page_calendar_adab50")}
         actions={
           <div className="flex items-center gap-1">
             <Button
@@ -48,7 +50,7 @@ function CalendarView() {
               size="icon"
               className="h-8 w-8"
               onClick={() => shift(-1)}
-              aria-label="Previous month"
+              aria-label={t("app_calendar_page_previous_month_46a299")}
             >
               <ChevronLeft />
             </Button>
@@ -64,7 +66,7 @@ function CalendarView() {
               size="icon"
               className="h-8 w-8"
               onClick={() => shift(1)}
-              aria-label="Next month"
+              aria-label={t("app_calendar_page_next_month_8abf7c")}
             >
               <ChevronRight />
             </Button>
@@ -79,14 +81,16 @@ function CalendarView() {
               <div role="alert" className="space-y-3 py-6 text-sm">
                 <p className="text-destructive">{error}</p>
                 <Button variant="outline" onClick={refresh}>
-                  Try again
+                  {t("app_calendar_page_try_again_042c86")}
                 </Button>
               </div>
             ) : data?.currencyScope?.monetary === false ? (
               <div className="space-y-6">
                 {data.currencyGroups?.map((group) => (
                   <div key={group.currency}>
-                    <p className="mb-3 text-sm font-medium">{group.currency} accounts</p>
+                    <p className="mb-3 text-sm font-medium">
+                      {group.currency} {t("app_calendar_page_accounts_10db27")}
+                    </p>
                     <CalendarPnl calendar={group.calendar} currency={group.currency} />
                   </div>
                 ))}
@@ -99,7 +103,7 @@ function CalendarView() {
                 runningPnl={data.runningPnl}
               />
             ) : (
-              <div role="status" aria-label="Loading calendar">
+              <div role="status" aria-label={t("app_calendar_page_loading_calendar_b68899")}>
                 <Skeleton className="h-96" />
               </div>
             )}
@@ -115,7 +119,7 @@ function CalendarView() {
         {!data && !error && (
           <div
             role="status"
-            aria-label="Loading performance insights"
+            aria-label={t("app_calendar_page_loading_performance_insights_99e4dd")}
             className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
           >
             {[0, 1, 2, 3].map((index) => (

@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { OptionSelect } from "@/components/ui/option-select";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -9,32 +10,28 @@ import { ChevronDown, CircleHelp } from "lucide-react";
 import { HoverHint } from "./ui/tooltip";
 import { DatePicker } from "./ui/date-picker";
 const FIELD_HINTS: Record<string, string> = {
-  From: "First included date. Closed trades use their closing day; open trades use their opening day.",
-  To: "Last included date. Dates follow the journal time zone.",
-  Strategy: "Include trades assigned to this playbook. All includes trades without a playbook.",
-  "Symbols (comma-separated)":
-    "Include these symbols. Separate multiple symbols with commas, for example AAPL, NVDA.",
-  "Exclude symbols": "Hide these symbols from the results. Separate multiple symbols with commas.",
-  "Required tags (comma-separated)":
-    "Filter by tags recorded on your trades. Separate multiple tags with commas.",
-  "Required mistakes":
-    "Filter by recorded trading mistakes. Separate multiple mistakes with commas.",
-  "Review status": "Find trades you have marked reviewed, or those still awaiting review.",
-  "Realized R": "Trade profit or loss expressed as a multiple of the trade's initial risk.",
-  "Planned R": "The planned reward relative to the trade's initial risk.",
-  "Minutes held": "Time between opening and closing a trade, measured in minutes.",
+  components_filter_fields_from_3f6605: "from",
+  components_filter_fields_to_ae79ea: "to",
+  components_filter_fields_strategy_69fb26: "strategy",
+  components_filter_fields_symbols_comma_separated_9094f1: "symbols",
+  components_filter_fields_exclude_symbols_e7db14: "excludeSymbols",
+  components_filter_fields_required_tags_comma_separated_297338: "tags",
+  components_filter_fields_required_mistakes_69cb98: "mistakes",
+  components_filter_fields_review_status_0fe6b8: "review",
 };
 export const fieldClass = "h-9 w-full min-w-0 rounded-md border bg-background px-2 text-sm";
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  const t = useTranslations("extracted");
+  const hint = Object.entries(FIELD_HINTS).find(([key]) => label.startsWith(t(key)))?.[1];
   return (
     <label className="journal-filter-field grid min-w-0 gap-1 text-xs text-muted-foreground">
       <span className="flex items-center gap-1.5">
         {label}
-        {FIELD_HINTS[label.split(" · ")[0]!] && (
-          <HoverHint heading={label} content={FIELD_HINTS[label.split(" · ")[0]!]}>
+        {hint && (
+          <HoverHint heading={label} content={t(`filter_hint_${hint}`)}>
             <span
               tabIndex={0}
-              aria-label={`About ${label}`}
+              aria-label={t("filter_about_label", { label })}
               className="inline-flex cursor-help rounded-sm text-muted-foreground/70 outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <CircleHelp aria-hidden="true" className="h-3 w-3" />
@@ -53,6 +50,7 @@ export function FilterFields({
   value: AnalysisFilters;
   onChange: (v: AnalysisFilters) => void;
 }) {
+  const t = useTranslations("extracted");
   const { data: accounts } = useApi<{
     accounts: { id: string; name: string; archivedAt: string | null }[];
   }>("/api/accounts");
@@ -90,7 +88,7 @@ export function FilterFields({
           value={value[key] ?? ""}
           onValueChange={(next) => set(key, next)}
         >
-          <option value="">All</option>
+          <option value="">{t("components_filter_fields_all_6a7208")}</option>
           {choices.map(([v, l]) => (
             <option key={v} value={v}>
               {l}
@@ -103,41 +101,44 @@ export function FilterFields({
   return (
     <div className="journal-filter-fields space-y-5">
       <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-3">
-        {input("from", "From", "date")}
-        {input("to", "To", "date")}
+        {input("from", t("components_filter_fields_from_3f6605"), "date")}
+        {input("to", t("components_filter_fields_to_ae79ea"), "date")}
         {select(
           "playbookId",
-          "Strategy",
+          t("components_filter_fields_strategy_69fb26"),
           (playbooks?.playbooks ?? []).map((p) => [p.id, p.name]),
         )}
-        {input("symbol", "Symbols (comma-separated)")}
-        {input("excludeSymbol", "Exclude symbols")}
-        {input("tag", "Required tags (comma-separated)")}
-        {input("mistake", "Required mistakes")}
-        {select("direction", "Direction", [
-          ["long", "Long"],
-          ["short", "Short"],
+        {input("symbol", t("components_filter_fields_symbols_comma_separated_9094f1"))}
+        {input("excludeSymbol", t("components_filter_fields_exclude_symbols_e7db14"))}
+        {input("tag", t("components_filter_fields_required_tags_comma_separated_297338"))}
+        {input("mistake", t("components_filter_fields_required_mistakes_69cb98"))}
+        {select("direction", t("components_filter_fields_direction_fd8e45"), [
+          ["long", t("filter_choice_long")],
+          ["short", t("filter_choice_short")],
         ])}
-        {select("status", "Outcome", [
-          ["closed", "All closed"],
-          ["open", "Open"],
-          ["win", "Win"],
-          ["loss", "Loss"],
-          ["breakeven", "Breakeven"],
+        {select("status", t("components_filter_fields_outcome_d3f061"), [
+          ["closed", t("filter_choice_closed")],
+          ["open", t("filter_choice_open")],
+          ["win", t("filter_choice_win")],
+          ["loss", t("filter_choice_loss")],
+          ["breakeven", t("filter_choice_breakeven")],
         ])}
-        {select("reviewed", "Review status", [
-          ["yes", "Reviewed"],
-          ["no", "Unreviewed"],
+        {select("reviewed", t("components_filter_fields_review_status_0fe6b8"), [
+          ["yes", t("filter_choice_reviewed")],
+          ["no", t("filter_choice_unreviewed")],
         ])}
         {select(
           "assetClass",
-          "Asset class",
-          ["equity", "futures", "forex", "option", "crypto", "cfd", "other"].map((v) => [v, v]),
+          t("components_filter_fields_asset_class_7c4cc7"),
+          ["equity", "futures", "forex", "option", "crypto", "cfd", "other"].map((v) => [
+            v,
+            t(`filter_asset_${v}`),
+          ]),
         )}
       </div>
       <fieldset className="journal-filter-accounts rounded-lg border p-3">
         <legend className="px-1 text-xs text-muted-foreground">
-          Accounts · none selected means all
+          {t("components_filter_fields_accounts_none_selected_means_all_1a952a")}
         </legend>
         <div className="flex flex-wrap gap-3">
           {accounts?.accounts
@@ -160,29 +161,29 @@ export function FilterFields({
       </fieldset>
       <details className="journal-filter-advanced">
         <summary className="flex cursor-pointer items-center justify-between gap-3 text-sm">
-          <span>Size, price, risk and time</span>
+          <span>{t("components_filter_fields_size_price_risk_and_time_a7fcd6")}</span>
           <ChevronDown aria-hidden="true" className="h-4 w-4 shrink-0 text-muted-foreground" />
         </summary>
         <div className="journal-filter-advanced-grid mt-3 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-4">
           {(
             [
-              ["quantity", "Total entry quantity"],
-              ["entry", "Entry price"],
-              ["exit", "Exit price"],
-              ["duration", "Minutes held"],
-              ["r", "Realized R"],
-              ["plannedR", "Planned R"],
-              ["pnl", "Net P&L"],
-              ["rating", "Rating"],
+              ["quantity", t("filter_advanced_quantity")],
+              ["entry", t("filter_advanced_entry")],
+              ["exit", t("filter_advanced_exit")],
+              ["duration", t("filter_advanced_duration")],
+              ["r", t("filter_advanced_r")],
+              ["plannedR", t("filter_advanced_plannedR")],
+              ["pnl", t("filter_advanced_pnl")],
+              ["rating", t("filter_advanced_rating")],
             ] as const
           ).flatMap(([k, l]) => [
-            input(`${k}Min` as FilterKey, `${l} · min`, "number"),
-            input(`${k}Max` as FilterKey, `${l} · max`, "number"),
+            input(`${k}Min` as FilterKey, t("filter_min", { label: l }), "number"),
+            input(`${k}Max` as FilterKey, t("filter_max", { label: l }), "number"),
           ])}
-          {input("entryAfter", "Entry after", "time")}
-          {input("entryBefore", "Entry before", "time")}
-          {input("exitAfter", "Exit after", "time")}
-          {input("exitBefore", "Exit before", "time")}
+          {input("entryAfter", t("components_filter_fields_entry_after_c0d75c"), "time")}
+          {input("entryBefore", t("components_filter_fields_entry_before_fca3e8"), "time")}
+          {input("exitAfter", t("components_filter_fields_exit_after_d73d61"), "time")}
+          {input("exitBefore", t("components_filter_fields_exit_before_e18d37"), "time")}
         </div>
         <div className="journal-filter-weekdays mt-3 flex flex-wrap gap-2">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, i) => (
@@ -196,7 +197,7 @@ export function FilterFields({
                   set("weekdays", [...days].join(","));
                 }}
               />
-              {day}
+              {t(`filter_weekday_${day}`)}
             </label>
           ))}
         </div>

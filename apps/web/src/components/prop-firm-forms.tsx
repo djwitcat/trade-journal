@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { useState, type ReactNode } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -11,7 +12,6 @@ import { useApi, postJson } from "@/lib/use-api";
 import { decodeImportFile } from "@/lib/decode-import";
 import {
   fromMinor,
-  label,
   PROP_PROGRAMS,
   PROP_STATES,
   PAYOUT_STATES,
@@ -104,6 +104,7 @@ function Form({
   children: ReactNode;
   submit: () => void;
 }) {
+  const t = useTranslations("extracted");
   return (
     <>
       <DialogHeader>
@@ -126,7 +127,9 @@ function Form({
           </p>
         )}
         <Button type="submit" disabled={busy}>
-          {busy ? "Saving…" : "Save record"}
+          {busy
+            ? t("components_prop_firm_forms_saving_56a228")
+            : t("components_prop_firm_forms_save_record_506b9b")}
         </Button>
       </form>
     </>
@@ -154,6 +157,7 @@ function AccountForm({
   close,
   refresh,
 }: Props & { modal: Extract<PropModal, { kind: "account" }> }) {
+  const t = useTranslations("extracted");
   const old = modal.account;
   const [id] = useState(() => old?.id ?? crypto.randomUUID());
   const [values, set] = useState(() =>
@@ -198,12 +202,12 @@ function AccountForm({
     <Form
       title={
         old
-          ? "Edit prop account"
+          ? t("components_prop_firm_forms_edit_prop_account_3a2170")
           : modal.parent
-            ? "Track next attempt or phase"
-            : "Track a prop account"
+            ? t("components_prop_firm_forms_track_next_attempt_or_phase_edf78b")
+            : t("components_prop_firm_forms_track_a_prop_account_fb2e8e")
       }
-      description="Keep each evaluation, reset attempt and funding phase as its own record. Account size is nominal capital, not money you spent."
+      description={t("components_prop_firm_forms_keep_each_evaluation_reset_attem_fc701d")}
       busy={busy}
       error={error}
       submit={() =>
@@ -211,21 +215,21 @@ function AccountForm({
       }
     >
       <div className="grid gap-3 sm:grid-cols-2">
-        {input("firm", "Firm name", true)}
-        {input("name", "Account / attempt name", true)}
-        <Field label="Program">
+        {input("firm", t("components_prop_firm_forms_firm_name_81c2cf"), true)}
+        {input("name", t("components_prop_firm_forms_account_attempt_name_8d1ebf"), true)}
+        <Field label={t("components_prop_firm_forms_program_9d6800")}>
           <OptionSelect
             value={values.program}
             onValueChange={(program) => set({ ...values, program })}
           >
             {PROP_PROGRAMS.map((v) => (
               <option key={v} value={v}>
-                {label(v)}
+                {t(`prop_enum_${v}`)}
               </option>
             ))}
           </OptionSelect>
         </Field>
-        <Field label="Status">
+        <Field label={t("components_prop_firm_forms_status_bae7d5")}>
           <OptionSelect
             value={values.status}
             onValueChange={(status) =>
@@ -239,37 +243,37 @@ function AccountForm({
           >
             {PROP_STATES.map((v) => (
               <option key={v} value={v}>
-                {label(v)}
+                {t(`prop_enum_${v}`)}
               </option>
             ))}
           </OptionSelect>
         </Field>
-        {input("currency", "Currency code", true)}
-        {input("size", "Nominal account size (optional)")}
-        <Field label="Opened on">
+        {input("currency", t("components_prop_firm_forms_currency_code_28a6fb"), true)}
+        {input("size", t("components_prop_firm_forms_nominal_account_size_optional_dadb3f"))}
+        <Field label={t("components_prop_firm_forms_opened_on_b9db19")}>
           <DatePicker
-            label="Prop account opening date"
+            label={t("components_prop_firm_forms_prop_account_opening_date_5ef424")}
             value={values.openedOn}
             max={data.today}
             onValueChange={(openedOn) => set({ ...values, openedOn })}
           />
         </Field>
         {values.status !== "active" && (
-          <Field label="Resolved on">
+          <Field label={t("components_prop_firm_forms_resolved_on_6632fb")}>
             <DatePicker
-              label="Prop account closing date"
+              label={t("components_prop_firm_forms_prop_account_closing_date_e3f5d7")}
               value={values.closedOn}
               max={data.today}
               onValueChange={(closedOn) => set({ ...values, closedOn })}
             />
           </Field>
         )}
-        <Field label="Previous attempt / phase">
+        <Field label={t("components_prop_firm_forms_previous_attempt_phase_19af1c")}>
           <OptionSelect
             value={values.parentId}
             onValueChange={(parentId) => set({ ...values, parentId })}
           >
-            <option value="">None</option>
+            <option value="">{t("components_prop_firm_forms_none_6eef66")}</option>
             {data.accounts
               .filter(
                 (a) =>
@@ -284,12 +288,12 @@ function AccountForm({
               ))}
           </OptionSelect>
         </Field>
-        <Field label="Link journal account (optional)">
+        <Field label={t("components_prop_firm_forms_link_journal_account_optional_f74940")}>
           <OptionSelect
             value={values.journalAccountId}
             onValueChange={(journalAccountId) => set({ ...values, journalAccountId })}
           >
-            <option value="">No journal link</option>
+            <option value="">{t("components_prop_firm_forms_no_journal_link_0084fb")}</option>
             {journal?.accounts.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
@@ -299,37 +303,38 @@ function AccountForm({
         </Field>
       </div>
       <details>
-        <summary className="cursor-pointer text-sm">Renewal reminder</summary>
+        <summary className="cursor-pointer text-sm">
+          {t("components_prop_firm_forms_renewal_reminder_d33419")}
+        </summary>
         <p className="my-2 text-xs text-muted-foreground">
-          A reminder only. Record an expense when charged; nothing is charged or added
-          automatically.
+          {t("components_prop_firm_forms_a_reminder_only_record_an_expens_790af9")}
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Next renewal">
+          <Field label={t("components_prop_firm_forms_next_renewal_4dcc98")}>
             <DatePicker
-              label="Next renewal date"
+              label={t("components_prop_firm_forms_next_renewal_date_89b2d1")}
               value={values.renewalOn}
               onValueChange={(renewalOn) => set({ ...values, renewalOn })}
             />
           </Field>
-          {input("renewalAmount", "Expected renewal amount")}
+          {input("renewalAmount", t("components_prop_firm_forms_expected_renewal_amount_caa1f3"))}
         </div>
         <Button
           type="button"
           variant="ghost"
           onClick={() => set({ ...values, renewalOn: "", renewalAmount: "" })}
         >
-          Clear reminder
+          {t("components_prop_firm_forms_clear_reminder_41888e")}
         </Button>
       </details>
-      <Field label="Notes / rules / breach reason">
+      <Field label={t("components_prop_firm_forms_notes_rules_breach_reason_5e2e3d")}>
         <textarea
           className={`${fieldClass} h-24 py-2`}
           value={values.notes}
           onChange={(e) => set({ ...values, notes: e.target.value })}
         />
       </Field>
-      {old && input("reason", "Reason for change", true)}
+      {old && input("reason", t("components_prop_firm_forms_reason_for_change_213a56"), true)}
     </Form>
   );
 }
@@ -339,6 +344,7 @@ function EntryForm({
   close,
   refresh,
 }: Props & { modal: Extract<PropModal, { kind: "entry" }> }) {
+  const t = useTranslations("extracted");
   const old = modal.entry,
     expense = modal.expense;
   const [id] = useState(() => old?.id ?? crypto.randomUUID());
@@ -384,17 +390,17 @@ function EntryForm({
     <Form
       title={
         old
-          ? `Edit ${kind}`
+          ? t("prop_edit_kind", { kind: t(`prop_enum_${kind}`) })
           : payout
-            ? "Log a payout request"
+            ? t("components_prop_firm_forms_log_a_payout_request_90eda9")
             : refund
-              ? "Record an expense refund"
-              : "Record prop spending"
+              ? t("components_prop_firm_forms_record_an_expense_refund_bae1d0")
+              : t("components_prop_firm_forms_record_prop_spending_968e59")
       }
       description={
         payout
-          ? "A request is not income. Record actual bank receipts separately, including partial payments. This does not request a payout from your firm."
-          : "Record cash that actually changed hands. Include taxes and fees in the amount paid. Do not duplicate trading commissions already included elsewhere."
+          ? t("components_prop_firm_forms_a_request_is_not_income_record_a_f18107")
+          : t("components_prop_firm_forms_record_cash_that_actually_change_501ac9")
       }
       busy={busy}
       error={error}
@@ -403,7 +409,7 @@ function EntryForm({
       }
     >
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Prop account">
+        <Field label={t("components_prop_firm_forms_prop_account_35b345")}>
           <OptionSelect
             disabled={Boolean(old || refund)}
             value={values.accountId}
@@ -412,47 +418,74 @@ function EntryForm({
               set({ ...values, accountId, firm: a?.firm ?? "", currency: a?.currency ?? "" });
             }}
           >
-            <option value="">{payout ? "Choose a funded account" : "Shared firm expense"}</option>
+            <option value="">
+              {payout
+                ? t("components_prop_firm_forms_choose_a_funded_account_67fd01")
+                : t("components_prop_firm_forms_shared_firm_expense_801aec")}
+            </option>
             {data.accounts
               .filter((a) => !payout || ["funded", "instant_funded", "live"].includes(a.program))
               .map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.firm} · {a.name}
-                  {a.archived ? " (archived)" : ""}
+                  {a.archived ? t("components_prop_firm_forms_archived_128aef") : ""}
                 </option>
               ))}
           </OptionSelect>
         </Field>
-        {input("firm", "Firm", true, Boolean(values.accountId || old || refund))}
-        {input("currency", "Currency", true, Boolean(values.accountId || old || refund))}
+        {input(
+          "firm",
+          t("components_prop_firm_forms_firm_257145"),
+          true,
+          Boolean(values.accountId || old || refund),
+        )}
+        {input(
+          "currency",
+          t("components_prop_firm_forms_currency_e070de"),
+          true,
+          Boolean(values.accountId || old || refund),
+        )}
         {!payout && !refund && (
-          <Field label="Expense category">
+          <Field label={t("components_prop_firm_forms_expense_category_a78210")}>
             <OptionSelect
               value={values.category}
               onValueChange={(category) => set({ ...values, category })}
             >
               {EXPENSE_CATEGORIES.map((v) => (
                 <option key={v} value={v}>
-                  {label(v)}
+                  {t(`prop_enum_${v}`)}
                 </option>
               ))}
             </OptionSelect>
           </Field>
         )}
-        {input("amount", payout ? "Gross requested amount (before split)" : "Actual amount", true)}
+        {input("amount", payout ? t("prop_gross_requested_amount") : t("prop_actual_amount"), true)}
         {payout && (
           <>
-            {input("splitPercent", "Your share (%)", true)}
-            {input("fee", "Fees withheld from your share", true)}
+            {input("splitPercent", t("components_prop_firm_forms_your_share_e61090"), true)}
+            {input(
+              "fee",
+              t("components_prop_firm_forms_fees_withheld_from_your_share_124aaa"),
+              true,
+            )}
             <p className="col-span-full text-xs text-muted-foreground">
-              If your amount is already after the firm split, enter 100% and only fees still to be
-              deducted. Never deduct the split twice.
+              {t("components_prop_firm_forms_if_your_amount_is_already_after__606715")}
             </p>
           </>
         )}
-        <Field label={payout ? "Request date" : "Cash date"}>
+        <Field
+          label={
+            payout
+              ? t("components_prop_firm_forms_request_date_f1ea5c")
+              : t("components_prop_firm_forms_cash_date_cca069")
+          }
+        >
           <DatePicker
-            label={payout ? "Payout request date" : "Transaction date"}
+            label={
+              payout
+                ? t("components_prop_firm_forms_payout_request_date_aa23a0")
+                : t("components_prop_firm_forms_transaction_date_4680ef")
+            }
             value={values.occurredOn}
             max={data.today}
             onValueChange={(occurredOn) => set({ ...values, occurredOn })}
@@ -460,14 +493,14 @@ function EntryForm({
         </Field>
         {payout && (
           <>
-            <Field label="Expected payment date (optional)">
+            <Field label={t("components_prop_firm_forms_expected_payment_date_optional_deb3ff")}>
               <DatePicker
-                label="Expected payout date"
+                label={t("components_prop_firm_forms_expected_payout_date_4c0256")}
                 value={values.dueOn}
                 onValueChange={(dueOn) => set({ ...values, dueOn })}
               />
             </Field>
-            <Field label="Payout status">
+            <Field label={t("components_prop_firm_forms_payout_status_0dbe36")}>
               <OptionSelect
                 value={values.status}
                 onValueChange={(status) =>
@@ -476,16 +509,16 @@ function EntryForm({
               >
                 {PAYOUT_STATES.filter((s) => old || s !== "completed").map((v) => (
                   <option key={v} value={v}>
-                    {label(v)}
+                    {t(`prop_enum_${v}`)}
                   </option>
                 ))}
               </OptionSelect>
             </Field>
           </>
         )}
-        {input("reference", "Invoice / payment reference")}
+        {input("reference", t("components_prop_firm_forms_invoice_payment_reference_8878ee"))}
       </div>
-      <Field label="Notes">
+      <Field label={t("components_prop_firm_forms_notes_704400")}>
         <textarea
           className={`${fieldClass} h-20 py-2`}
           value={values.notes}
@@ -494,11 +527,11 @@ function EntryForm({
       </Field>
       {refund && (
         <p className="text-xs text-muted-foreground">
-          Linked expense: {values.parentId}. Refunds reduce costs and are shown separately from
-          payout income.
+          {t("components_prop_firm_forms_linked_expense_36c89f")} {values.parentId}
+          {t("components_prop_firm_forms_refunds_reduce_costs_and_are_sho_0137dd")}
         </p>
       )}
-      {old && input("reason", "Reason for change", true)}
+      {old && input("reason", t("components_prop_firm_forms_reason_for_change_213a56"), true)}
     </Form>
   );
 }
@@ -508,6 +541,7 @@ function ReceiptForm({
   close,
   refresh,
 }: Props & { modal: Extract<PropModal, { kind: "receipt" }> }) {
+  const t = useTranslations("extracted");
   const { payout } = modal;
   const [id] = useState(() => crypto.randomUUID());
   const [values, set] = useState({
@@ -520,8 +554,8 @@ function ReceiptForm({
   const { busy, error, save } = useSave(close, refresh);
   return (
     <Form
-      title="Record payout cash movement"
-      description={`Record the actual net amount credited or returned in ${payout.currency}. If your bank converted currencies, use the statement's original-currency amount; this tracker does not invent an exchange rate.`}
+      title={t("components_prop_firm_forms_record_payout_cash_movement_a877de")}
+      description={t("prop_receipt_description", { currency: payout.currency })}
       busy={busy}
       error={error}
       submit={() =>
@@ -535,35 +569,37 @@ function ReceiptForm({
       }
     >
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Movement">
+        <Field label={t("components_prop_firm_forms_movement_dc8127")}>
           <OptionSelect value={values.kind} onValueChange={(kind) => set({ ...values, kind })}>
-            <option value="receipt">Money received</option>
-            <option value="reversal">Money returned / reversed</option>
+            <option value="receipt">{t("components_prop_firm_forms_money_received_bb9cec")}</option>
+            <option value="reversal">
+              {t("components_prop_firm_forms_money_returned_reversed_2211d6")}
+            </option>
           </OptionSelect>
         </Field>
-        <Field label={`Actual amount (${payout.currency})`}>
+        <Field label={t("prop_actual_amount_currency", { currency: payout.currency })}>
           <Input
             required
             value={values.amount}
             onChange={(e) => set({ ...values, amount: e.target.value })}
           />
         </Field>
-        <Field label="Settlement date">
+        <Field label={t("components_prop_firm_forms_settlement_date_181540")}>
           <DatePicker
-            label="Settlement date"
+            label={t("components_prop_firm_forms_settlement_date_181540")}
             value={values.occurredOn}
             max={data.today}
             onValueChange={(occurredOn) => set({ ...values, occurredOn })}
           />
         </Field>
-        <Field label="Bank reference">
+        <Field label={t("components_prop_firm_forms_bank_reference_44d0df")}>
           <Input
             value={values.reference}
             onChange={(e) => set({ ...values, reference: e.target.value })}
           />
         </Field>
       </div>
-      <Field label="Notes">
+      <Field label={t("components_prop_firm_forms_notes_704400")}>
         <textarea
           className={`${fieldClass} h-20 py-2`}
           value={values.notes}
@@ -571,8 +607,7 @@ function ReceiptForm({
         />
       </Field>
       <p className="text-xs text-muted-foreground">
-        Keep the request open for partial payments. Once the final payment arrives, edit the payout
-        status to Completed; a difference from the expected amount remains visible.
+        {t("components_prop_firm_forms_keep_the_request_open_for_partia_4f54ca")}
       </p>
     </Form>
   );
@@ -582,6 +617,7 @@ function ChangeForm({
   close,
   refresh,
 }: Props & { modal: Extract<PropModal, { kind: "change" }> }) {
+  const t = useTranslations("extracted");
   const [reason, setReason] = useState("");
   const { busy, error, save } = useSave(close, refresh);
   return (
@@ -589,8 +625,8 @@ function ChangeForm({
       title={modal.name}
       description={
         modal.action === "account.archive"
-          ? "Archiving hides the account from the active list. Its cash history remains in returns. You can restore it later."
-          : "Voided records stay in the audit trail and are excluded from cash totals. They can be restored. Voiding a payout also excludes its receipts."
+          ? t("components_prop_firm_forms_archiving_hides_the_account_from_b6301d")
+          : t("components_prop_firm_forms_voided_records_stay_in_the_audit_589dbd")
       }
       busy={busy}
       error={error}
@@ -605,13 +641,14 @@ function ChangeForm({
         })
       }
     >
-      <Field label="Reason">
+      <Field label={t("components_prop_firm_forms_reason_f219cc")}>
         <Input required value={reason} onChange={(e) => setReason(e.target.value)} />
       </Field>
     </Form>
   );
 }
 function Detail({ modal, data }: Props & { modal: Extract<PropModal, { kind: "detail" }> }) {
+  const t = useTranslations("extracted");
   const account = modal.type === "account" ? data.accounts.find((a) => a.id === modal.id) : null;
   const entry = modal.type === "entry" ? data.entries.find((e) => e.id === modal.id) : null;
   const { data: history } = useApi<{ history: PropAudit[] }>(
@@ -620,22 +657,27 @@ function Detail({ modal, data }: Props & { modal: Extract<PropModal, { kind: "de
   return (
     <>
       <DialogHeader>
-        <DialogTitle>{account?.name ?? `${label(entry?.kind ?? "Entry")} details`}</DialogTitle>
+        <DialogTitle>
+          {account?.name ??
+            t("prop_kind_details", {
+              kind: entry?.kind ? t(`prop_enum_${entry.kind}`) : t("prop_entry"),
+            })}
+        </DialogTitle>
         <DialogDescription>
           {account?.firm ?? entry?.firm} · {modal.id}
         </DialogDescription>
       </DialogHeader>
       <p className="whitespace-pre-wrap text-sm">
-        {account?.notes || entry?.notes || "No notes added."}
+        {account?.notes || entry?.notes || t("components_prop_firm_forms_no_notes_added_bf91b9")}
       </p>
       {account && (
         <>
           <p className="break-all text-xs text-muted-foreground">
-            Account ID for CSV imports: {account.id}
+            {t("components_prop_firm_forms_account_id_for_csv_imports_691c10")} {account.id}
           </p>
           {account.parentId && (
             <p className="text-sm">
-              Previous attempt / phase:{" "}
+              {t("components_prop_firm_forms_previous_attempt_phase_edf48b")}{" "}
               {data.accounts.find((a) => a.id === account.parentId)?.name ?? account.parentId}
             </p>
           )}
@@ -644,28 +686,32 @@ function Detail({ modal, data }: Props & { modal: Extract<PropModal, { kind: "de
               className="text-sm underline"
               href={`/trades?accounts=${encodeURIComponent(account.journalAccountId)}`}
             >
-              Open linked journal trades
+              {t("components_prop_firm_forms_open_linked_journal_trades_733f0d")}
             </a>
           )}
         </>
       )}
       <Attachments type={modal.type === "account" ? "prop-account" : "prop-entry"} id={modal.id} />
       <details>
-        <summary className="cursor-pointer text-sm">Edit history · latest 100 changes</summary>
+        <summary className="cursor-pointer text-sm">
+          {t("components_prop_firm_forms_edit_history_latest_100_changes_de3a65")}
+        </summary>
         <div className="mt-3 space-y-3">
           {history?.history.map((item) => (
             <details key={item.id} className="rounded-md border p-2 text-xs">
               <summary className="cursor-pointer">
                 {item.createdAt} ·{" "}
-                {item.reason.startsWith("CSV import") ? "CSV import" : item.reason}
+                {item.reason.startsWith("CSV import")
+                  ? t("components_prop_firm_forms_csv_import_41b55f")
+                  : item.reason}
               </summary>
-              <p className="my-2 font-medium">Before</p>
+              <p className="my-2 font-medium">{t("components_prop_firm_forms_before_74f396")}</p>
               <pre className="whitespace-pre-wrap break-all">
                 {item.beforeJson
                   ? JSON.stringify(JSON.parse(item.beforeJson), null, 2)
-                  : "New record"}
+                  : t("components_prop_firm_forms_new_record_c6e295")}
               </pre>
-              <p className="my-2 font-medium">After</p>
+              <p className="my-2 font-medium">{t("components_prop_firm_forms_after_79ba5e")}</p>
               <pre className="whitespace-pre-wrap break-all">
                 {JSON.stringify(JSON.parse(item.afterJson), null, 2)}
               </pre>
@@ -677,6 +723,7 @@ function Detail({ modal, data }: Props & { modal: Extract<PropModal, { kind: "de
   );
 }
 function ImportForm({ close, refresh }: Props) {
+  const t = useTranslations("extracted");
   const [content, setContent] = useState(""),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
@@ -704,24 +751,20 @@ function ImportForm({ close, refresh }: Props) {
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Import prop cash CSV</DialogTitle>
+        <DialogTitle>{t("components_prop_firm_forms_import_prop_cash_csv_a64094")}</DialogTitle>
         <DialogDescription>
-          Import settled expenses, refunds and net payouts. Preview validates every row; an import
-          is all-or-nothing and repeated stable IDs are skipped.
+          {t("components_prop_firm_forms_import_settled_expenses_refunds__b47e0d")}
         </DialogDescription>
       </DialogHeader>
       <a className="text-sm underline" href="/prop-cash-template.csv" download>
-        Download generic cash header template
+        {t("components_prop_firm_forms_download_generic_cash_header_tem_a4e136")}
       </a>
       <p className="text-xs text-muted-foreground">
-        Use kind expense, refund or payout; date YYYY-MM-DD; positive amount in currency units. A
-        payout amount is cash already received after splits and fees. Payouts need account_id from
-        an account’s Details. A refund’s expense_id references its original CSV row ID. Put expenses
-        before their refunds. This is not a broker statement importer.
+        {t("components_prop_firm_forms_use_kind_expense_refund_or_payou_b2a0f8")}
       </p>
       <Input
         type="file"
-        aria-label="Prop cash CSV file"
+        aria-label={t("components_prop_firm_forms_prop_cash_csv_file_ba61da")}
         accept=".csv,text/csv"
         disabled={busy}
         onChange={async (e) => {
@@ -731,18 +774,20 @@ function ImportForm({ close, refresh }: Props) {
           setError("");
           if (!file) return;
           if (file.size > 2 * 1024 * 1024) {
-            setError("Use a CSV up to 2 MB / 1,000 rows.");
+            setError(t("components_prop_firm_forms_csv_too_large"));
             return;
           }
           try {
             setContent(decodeImportFile(await file.arrayBuffer()));
           } catch {
-            setError("Could not read CSV.");
+            setError(t("components_prop_firm_forms_csv_read_failed"));
           }
         }}
       />
       <Button variant="outline" disabled={!content || busy} onClick={() => void act("preview")}>
-        {busy ? "Validating…" : "Validate & preview"}
+        {busy
+          ? t("components_prop_firm_forms_validating_c07434")
+          : t("components_prop_firm_forms_validate_preview_76ff54")}
       </Button>
       {error && (
         <p role="alert" className="text-sm text-destructive">
@@ -752,7 +797,8 @@ function ImportForm({ close, refresh }: Props) {
       {result && (
         <>
           <p className="text-sm">
-            {result.imported} new records · {result.skipped} already imported.
+            {result.imported} {t("components_prop_firm_forms_new_records_9f8329")} {result.skipped}{" "}
+            {t("components_prop_firm_forms_already_imported_8de16b")}
           </p>
           <div className="space-y-2">
             {result.sample.map((row) => (
@@ -762,7 +808,8 @@ function ImportForm({ close, refresh }: Props) {
             ))}
           </div>
           <Button disabled={busy || result.imported === 0} onClick={() => void act("import")}>
-            Import {result.imported} records
+            {t("components_prop_firm_forms_import_d6fbc9")} {result.imported}{" "}
+            {t("components_prop_firm_forms_records_86761b")}
           </Button>
         </>
       )}

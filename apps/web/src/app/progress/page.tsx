@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { DatePicker } from "@/components/ui/date-picker";
 import { OptionSelect } from "@/components/ui/option-select";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,6 +23,7 @@ export default function ProgressPage() {
   );
 }
 function Progress() {
+  const t = useTranslations("extracted");
   const { data, error, refresh } = useApi<{
     rules: Routine[];
     checks: RoutineCheck[];
@@ -53,7 +55,7 @@ function Progress() {
       refresh();
       return true;
     } catch (e) {
-      setFailure(e instanceof Error ? e.message : "Could not save.");
+      setFailure(e instanceof Error ? e.message : t("common_save_failed"));
       return false;
     } finally {
       setBusy(false);
@@ -62,17 +64,16 @@ function Progress() {
   return (
     <div>
       <FilterBar
-        title="Progress"
+        title={t("app_progress_page_progress_1b9027")}
         actions={
           <Button size="sm" onClick={() => setOpen(true)}>
-            Add routine
+            {t("app_progress_page_add_routine_8fd2d6")}
           </Button>
         }
       />
       <div className="space-y-4 p-4">
         <p className="text-sm text-muted-foreground">
-          Build a repeatable trading day. Routines are tracked independently of trade filters and
-          profit.
+          {t("app_progress_page_build_a_repeatable_trading_day_r_3d4b37")}
         </p>
         {(error || failure) && (
           <p role="alert" className="text-sm text-destructive">
@@ -83,17 +84,20 @@ function Progress() {
           <CardContent className="flex flex-wrap items-center justify-between gap-6 py-6">
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
               <div>
-                <p className="text-xs text-muted-foreground">Daily completion</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("app_progress_page_daily_completion_3e2d83")}
+                </p>
                 <p className="text-4xl font-semibold">
                   {score?.score == null ? "-" : `${Math.round(score.score * 100)}%`}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {score?.completed ?? 0} of {score?.total ?? 0} scheduled routines
+                  {score?.completed ?? 0} {t("app_progress_page_of_de04fa")} {score?.total ?? 0}{" "}
+                  {t("app_progress_page_scheduled_routines_52c5fa")}
                 </p>
               </div>
-              <Field label="Review date">
+              <Field label={t("app_progress_page_review_date_f3ca33")}>
                 <DatePicker
-                  label="Progress date"
+                  label={t("app_progress_page_progress_date_a025c3")}
                   value={selected}
                   max={data?.today}
                   onValueChange={setDate}
@@ -102,9 +106,12 @@ function Progress() {
             </div>
             <ReviewExport
               document={{
-                title: `Routine review · ${selected}`,
+                title: t("progress_export_title", { date: selected }),
                 lines: [
-                  `Completed: ${score?.completed ?? 0}/${score?.total ?? 0}`,
+                  t("progress_export_completed", {
+                    completed: score?.completed ?? 0,
+                    total: score?.total ?? 0,
+                  }),
                   ...rules.map(
                     (r) =>
                       `${data?.checks.some((c) => c.date === selected && c.ruleId === r.id && c.done) ? "[done]" : "[ ]"} ${r.stage}: ${r.title}`,
@@ -118,7 +125,7 @@ function Progress() {
           {STAGES.map((s) => (
             <Card key={s}>
               <CardHeader>
-                <CardTitle>{s}</CardTitle>
+                <CardTitle>{t(`progress_stage_${STAGES.indexOf(s)}`)}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {rules
@@ -144,17 +151,19 @@ function Progress() {
                         <button
                           className="text-xs text-muted-foreground underline"
                           onClick={() => {
-                            if (confirm(`Archive “${r.title}”? Previous days are preserved.`))
+                            if (confirm(t("progress_confirm_archive", { title: r.title })))
                               void act({ id: r.id }, "DELETE");
                           }}
                         >
-                          Archive
+                          {t("app_progress_page_archive_2621c6")}
                         </button>
                       )}
                     </div>
                   ))}
                 {!rules.some((r) => r.stage === s) && (
-                  <p className="text-xs text-muted-foreground">No routines scheduled.</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("app_progress_page_no_routines_scheduled_1e28b3")}
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -162,7 +171,7 @@ function Progress() {
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>Last 13 weeks</CardTitle>
+            <CardTitle>{t("app_progress_page_last_13_weeks_b0d850")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-flow-col grid-rows-7 gap-1 overflow-x-auto">
@@ -170,7 +179,10 @@ function Progress() {
                 <HoverHint
                   key={d.date}
                   heading={d.date}
-                  content={`${d.completed} of ${d.total} routines completed`}
+                  content={t("progress_routines_completed", {
+                    completed: d.completed,
+                    total: d.total,
+                  })}
                 >
                   <button
                     key={d.date}
@@ -188,32 +200,33 @@ function Progress() {
               ))}
             </div>
             <p className="mt-3 text-xs text-muted-foreground">
-              Brighter squares mean a higher completion rate. Grey means no scheduled routines.
-              Click a day to review it. New routines start today.
+              {t("app_progress_page_brighter_squares_mean_a_higher_c_486478")}
             </p>
           </CardContent>
         </Card>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add a daily routine</DialogTitle>
+              <DialogTitle>{t("app_progress_page_add_a_daily_routine_e78d11")}</DialogTitle>
             </DialogHeader>
-            <Field label="Routine">
+            <Field label={t("app_progress_page_routine_482273")}>
               <input
                 className={fieldClass}
                 value={title}
-                placeholder="Review the economic calendar"
+                placeholder={t("app_progress_page_review_the_economic_calendar_edf8fb")}
                 onChange={(e) => setTitle(e.target.value)}
               />
             </Field>
-            <Field label="When">
+            <Field label={t("app_progress_page_when_769bb1")}>
               <OptionSelect
                 className={fieldClass}
                 value={stage}
                 onValueChange={(next) => setStage(next)}
               >
                 {STAGES.map((s) => (
-                  <option key={s}>{s}</option>
+                  <option key={s} value={s}>
+                    {t(`progress_stage_${STAGES.indexOf(s)}`)}
+                  </option>
                 ))}
               </OptionSelect>
             </Field>
@@ -228,7 +241,7 @@ function Progress() {
                       )
                     }
                   />
-                  {day}
+                  {t(`filter_weekday_${day}`)}
                 </label>
               ))}
             </div>
@@ -246,7 +259,7 @@ function Progress() {
                 }
               }}
             >
-              Add routine
+              {t("app_progress_page_add_routine_8fd2d6")}
             </Button>
           </DialogContent>
         </Dialog>

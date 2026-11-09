@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import {
   startTransition,
   useEffect,
@@ -98,6 +99,7 @@ const dropAnimation: DropAnimation = {
 };
 
 export function DashboardLayout({ widgets }: { widgets: Widget[] }) {
+  const t = useTranslations("extracted");
   const idsKey = JSON.stringify(widgets.map((widget) => widget.id));
   const ids = useMemo(() => JSON.parse(idsKey) as string[], [idsKey]);
   const initial = useMemo(() => normalizeArrangement(null, ids), [ids]);
@@ -150,7 +152,7 @@ export function DashboardLayout({ widgets }: { widgets: Widget[] }) {
           const next = { current: normalizeArrangement(null, ids), layouts: {} };
           stateRef.current = next;
           setState(next);
-          setError("Saved dashboard preferences could not be read. All cards are shown.");
+          setError(t("components_dashboard_layout_read_failed"));
         }
         setReady(true);
       });
@@ -165,7 +167,7 @@ export function DashboardLayout({ widgets }: { widgets: Widget[] }) {
 
   function update(
     change: (previous: DashboardPreferences) => DashboardPreferences,
-    message = "Layout saved",
+    message = t("components_dashboard_layout_layout_saved"),
   ) {
     const next = change(stateRef.current);
     captureLayout();
@@ -178,7 +180,7 @@ export function DashboardLayout({ widgets }: { widgets: Widget[] }) {
       return true;
     } catch {
       setFeedback("");
-      setError("Your layout changed, but could not be saved in this browser.");
+      setError(t("components_dashboard_layout_save_failed"));
       return false;
     }
   }
@@ -210,7 +212,8 @@ export function DashboardLayout({ widgets }: { widgets: Widget[] }) {
     wide: 10,
     full: 15,
   });
-  const label = (id: string | number) => byId.get(String(id))?.label ?? "Card";
+  const label = (id: string | number) =>
+    byId.get(String(id))?.label ?? t("dashboard_card_fallback");
 
   function startDrag({ active, activatorEvent }: DragStartEvent) {
     const card = Array.from(gridRef.current?.children ?? []).find(
@@ -265,7 +268,7 @@ export function DashboardLayout({ widgets }: { widgets: Widget[] }) {
       if (JSON.stringify(next) !== JSON.stringify(stateRef.current.current))
         update(
           (previous) => ({ ...previous, current: next }),
-          `${label(active.id)} moved. Layout saved.`,
+          t("components_dashboard_layout_moved", { label: label(active.id) }),
         );
       clearDrag();
     } else {
@@ -278,12 +281,16 @@ export function DashboardLayout({ widgets }: { widgets: Widget[] }) {
         ...previous,
         current: { ...normalizeArrangement(previous.current, ids), hidden: [] },
       }),
-      "All cards are shown. Layout saved.",
+      t("components_dashboard_layout_all_shown"),
     );
   }
 
   if (!ready)
-    return <div className="p-4 text-sm text-muted-foreground">Loading dashboard layout…</div>;
+    return (
+      <div className="p-4 text-sm text-muted-foreground">
+        {t("components_dashboard_layout_loading_dashboard_layout_2b7f43")}
+      </div>
+    );
 
   return (
     <div className="space-y-3 p-4">
@@ -299,7 +306,7 @@ export function DashboardLayout({ widgets }: { widgets: Widget[] }) {
                   ...previous,
                   current: normalizeArrangement(arrangement, ids),
                 }),
-                `${name} loaded`,
+                t("components_dashboard_layout_named_loaded", { name }),
               )
             }
             onSave={(name) =>
@@ -311,12 +318,13 @@ export function DashboardLayout({ widgets }: { widgets: Widget[] }) {
                     [name]: normalizeArrangement(previous.current, ids),
                   },
                 }),
-                `${name} saved`,
+                t("components_dashboard_layout_named_saved", { name }),
               )
             }
           />
           <span className="text-xs text-muted-foreground">
-            {visible.length} of {widgets.length} cards
+            {visible.length} {t("components_dashboard_layout_of_de04fa")} {widgets.length}{" "}
+            {t("components_dashboard_layout_cards_c8d375")}
           </span>
           <span role="status" className="sr-only">
             {feedback}
@@ -345,18 +353,16 @@ export function DashboardLayout({ widgets }: { widgets: Widget[] }) {
           onRestore={() =>
             update(
               (previous) => ({ ...previous, current: initial }),
-              "Original card order restored. All cards are shown.",
+              t("components_dashboard_layout_restored"),
             )
           }
         />
       </div>
       {hiddenCount > 0 && (
         <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-card px-3 py-2 text-sm">
-          <span>
-            {hiddenCount} {hiddenCount === 1 ? "card is" : "cards are"} hidden in this layout.
-          </span>
+          <span>{t("components_dashboard_layout_hidden_count", { count: hiddenCount })}</span>
           <Button type="button" size="sm" variant="outline" onClick={showAll}>
-            Show all cards
+            {t("components_dashboard_layout_show_all_cards_eb8a6e")}
           </Button>
         </div>
       )}
@@ -367,7 +373,7 @@ export function DashboardLayout({ widgets }: { widgets: Widget[] }) {
       )}
       {visible.length === 0 && (
         <p className="py-8 text-center text-sm text-muted-foreground">
-          All cards are hidden. Choose Show all cards to restore them.
+          {t("components_dashboard_layout_all_cards_are_hidden_choose_show_4d5ab8")}
         </p>
       )}
       <DndContext
@@ -388,20 +394,27 @@ export function DashboardLayout({ widgets }: { widgets: Widget[] }) {
         onDragCancel={cancelDrag}
         accessibility={{
           screenReaderInstructions: {
-            draggable:
-              "Press Space or Enter to pick up a card. Use the arrow keys to move, then Space or Enter to drop. Press Escape to cancel.",
+            draggable: t("components_dashboard_layout_drag_instructions"),
           },
           announcements: {
-            onDragStart: ({ active }) => `Picked up ${label(active.id)}.`,
+            onDragStart: ({ active }) =>
+              t("components_dashboard_layout_picked_up", { label: label(active.id) }),
             onDragOver: ({ active, over }) =>
               over
-                ? `${label(active.id)} is over ${label(over.id)}.`
-                : "Outside the cards. Drop here to cancel.",
+                ? t("components_dashboard_layout_is_over", {
+                    active: label(active.id),
+                    over: label(over.id),
+                  })
+                : t("components_dashboard_layout_outside"),
             onDragEnd: ({ active, over }) =>
               over
-                ? `${label(active.id)} placed at position ${visible.indexOf(String(active.id)) + 1} of ${visible.length}.`
-                : "Move cancelled.",
-            onDragCancel: () => "Move cancelled. Layout unchanged.",
+                ? t("components_dashboard_layout_placed", {
+                    label: label(active.id),
+                    position: visible.indexOf(String(active.id)) + 1,
+                    total: visible.length,
+                  })
+                : t("components_dashboard_layout_move_cancelled"),
+            onDragCancel: () => t("components_dashboard_layout_move_cancelled_unchanged"),
           },
         }}
       >
@@ -446,6 +459,7 @@ function SortableCard({
   responsiveSpans: { compact: number; tablet: number; desktop: number };
   exiting: boolean;
 }) {
+  const t = useTranslations("extracted");
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, isDragging } = useSortable({
     id: widget.id,
     disabled: exiting,
@@ -481,8 +495,8 @@ function SortableCard({
           variant="ghost"
           {...attributes}
           {...listeners}
-          aria-label={`Rearrange ${widget.label}`}
-          title={`Drag to rearrange ${widget.label}`}
+          aria-label={t("dashboard_rearrange_aria", { label: widget.label })}
+          title={t("dashboard_drag_title", { label: widget.label })}
           className="absolute left-1.5 top-3 z-[1] h-6 w-5 touch-none cursor-grab text-muted-foreground/60 hover:text-foreground active:cursor-grabbing"
         >
           <GripVertical className="h-3.5 w-3.5" />

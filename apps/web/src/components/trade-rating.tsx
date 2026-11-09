@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -11,6 +12,7 @@ export function TradeRating({
   value: number | null;
   onChange: (value: number | null) => Promise<void>;
 }) {
+  const t = useTranslations("extracted");
   const [rating, setRating] = useState(value);
   const [hovered, setHovered] = useState<number | null>(null);
   const [focused, setFocused] = useState<number | null>(null);
@@ -32,7 +34,7 @@ export function TradeRating({
       await onChange(next);
     } catch {
       setRating(previous);
-      setError("Rating was not saved. Try again.");
+      setError(t("components_trade_rating_save_failed"));
     } finally {
       setSaving(false);
     }
@@ -42,7 +44,7 @@ export function TradeRating({
     <div>
       <div
         role="group"
-        aria-label="Trade rating"
+        aria-label={t("components_trade_rating_trade_rating_65e11c")}
         className="flex items-center gap-0.5"
         onPointerLeave={() => setHovered(null)}
       >
@@ -50,7 +52,7 @@ export function TradeRating({
           <button
             key={star}
             type="button"
-            aria-label={`Rate ${star} stars`}
+            aria-label={t("trade_rate_stars", { count: star })}
             aria-pressed={rating === star}
             aria-disabled={saving}
             onPointerEnter={() => setHovered(star)}

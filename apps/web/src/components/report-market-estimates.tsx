@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import {
   RESOLUTIONS,
@@ -22,6 +23,7 @@ export function ReportMarketEstimates({
   currencies: string[];
   onComplete: () => void;
 }) {
+  const t = useTranslations("extracted");
   const { data } = useApi<{ connections: MarketConnection[] }>("/api/market-data/connections");
   const available = data?.connections.filter((item) => item.configured) ?? [];
   const [provider, setProvider] = useState("");
@@ -49,7 +51,13 @@ export function ReportMarketEstimates({
     try {
       for (const point of missing) {
         if (request.signal.aborted) break;
-        setStatus(`Calculating ${completed + 1} of ${missing.length} · ${point.symbol}`);
+        setStatus(
+          t("market_estimate_calculating", {
+            current: completed + 1,
+            total: missing.length,
+            symbol: point.symbol,
+          }),
+        );
         try {
           const response = await fetch(`/api/trades/${encodeURIComponent(point.key)}/market-data`, {
             method: "POST",
@@ -65,9 +73,9 @@ export function ReportMarketEstimates({
             signal: request.signal,
           });
           const body = (await response.json()) as TradeMarketResult & { error?: string };
-          if (!response.ok) throw new Error(body.error ?? "History request failed.");
+          if (!response.ok) throw new Error(body.error ?? t("market_history_failed"));
           if (body.estimate.mae === null || body.estimate.mfe === null)
-            throw new Error(body.estimate.warnings[0] ?? "Estimate unavailable.");
+            throw new Error(body.estimate.warnings[0] ?? t("market_estimate_unavailable"));
           saved++;
           consecutiveFailures = 0;
         } catch (cause) {
@@ -75,7 +83,7 @@ export function ReportMarketEstimates({
           failed++;
           consecutiveFailures++;
           problems.add(
-            `${point.symbol}: ${cause instanceof Error ? cause.message : "History request failed."}`,
+            `${point.symbol}: ${cause instanceof Error ? cause.message : t("market_history_failed")}`,
           );
           setIssues([...problems].slice(0, 3));
         }
@@ -86,7 +94,12 @@ export function ReportMarketEstimates({
     } finally {
       setBusy(false);
       setStatus(
-        `${request.signal.aborted ? "Stopped. " : ""}${saved} estimates saved · ${failed} unavailable · ${missing.length - completed} not processed.`,
+        t("market_estimate_status", {
+          stopped: request.signal.aborted ? t("market_estimate_stopped") : "",
+          saved,
+          failed,
+          pending: missing.length - completed,
+        }),
       );
       onComplete();
     }
@@ -94,26 +107,29 @@ export function ReportMarketEstimates({
   return (
     <div className="space-y-3 rounded-xl border bg-card p-4">
       <div>
-        <h3 className="text-sm font-medium">MAE & MFE estimates</h3>
+        <h3 className="text-sm font-medium">
+          {t("components_report_market_estimates_mae_mfe_estimates_1bd9fc")}
+        </h3>
         <p className="mt-1 text-xs text-muted-foreground">
-          {points.length - missing.length} of {points.length} closed trades have saved estimates.
-          Estimated gross excursions exclude fees; MAE is shown as a positive adverse amount.
-          Missing values are excluded from plots, never counted as zero.
+          {points.length - missing.length} {t("components_report_market_estimates_of_de04fa")}{" "}
+          {points.length}{" "}
+          {t("components_report_market_estimates_closed_trades_have_saved_estimat_71b325")}
         </p>
       </div>
       {missing.length > 0 && (
         <details>
-          <summary className="cursor-pointer text-sm">Calculate missing estimates</summary>
+          <summary className="cursor-pointer text-sm">
+            {t("components_report_market_estimates_calculate_missing_estimates_0eae40")}
+          </summary>
           <div className="mt-3 space-y-3">
             <p className="text-xs text-muted-foreground">
-              Loads {resolution} candles for this selection using each trade’s recorded symbol. This
-              uses your provider allowance and may take several minutes. For custom symbols or a
-              specific CSV dataset, load and save estimates from the individual trade.
+              {t("components_report_market_estimates_loads_71697c")} {resolution}{" "}
+              {t("components_report_market_estimates_candles_for_this_selection_using_71ffa8")}
             </p>
             {available.length ? (
               <>
                 <OptionSelect
-                  aria-label="Estimate data provider"
+                  aria-label={t("components_report_market_estimates_estimate_data_provider_23702e")}
                   value={provider}
                   disabled={busy}
                   onValueChange={(value) => {
@@ -123,16 +139,18 @@ export function ReportMarketEstimates({
                   }}
                 >
                   <option value="" disabled>
-                    Choose a data source
+                    {t("components_report_market_estimates_choose_a_data_source_444bc8")}
                   </option>
                   {available.map((item) => (
                     <option key={item.id} value={item.id}>
-                      {item.name}
+                      {t(`market_provider_${item.id}_name`)}
                     </option>
                   ))}
                 </OptionSelect>
                 <OptionSelect
-                  aria-label="Estimate candle resolution"
+                  aria-label={t(
+                    "components_report_market_estimates_estimate_candle_resolution_4c72d7",
+                  )}
                   disabled={busy}
                   value={resolution}
                   onValueChange={(value) => setResolution(value as Resolution)}
@@ -145,7 +163,7 @@ export function ReportMarketEstimates({
                 </OptionSelect>
                 {info?.datasets && (
                   <OptionSelect
-                    aria-label="Estimate dataset"
+                    aria-label={t("components_report_market_estimates_estimate_dataset_4b0133")}
                     value={dataset}
                     disabled={busy}
                     onValueChange={(value) => {
@@ -155,12 +173,14 @@ export function ReportMarketEstimates({
                   >
                     {info.datasets.map((item) => (
                       <option key={item.value} value={item.value}>
-                        {item.label}
+                        {t(`market_provider_${info.id}_dataset_${item.value || "default"}_label`)}
                       </option>
                     ))}
                   </OptionSelect>
                 )}
-                <p className="text-xs text-muted-foreground">{info?.symbolHint}</p>
+                <p className="text-xs text-muted-foreground">
+                  {info && t(`market_provider_${info.id}_symbol_hint`)}
+                </p>
                 <label className="flex items-start gap-2 text-xs text-muted-foreground">
                   <input
                     type="checkbox"
@@ -168,12 +188,14 @@ export function ReportMarketEstimates({
                     disabled={busy || currencies.length !== 1}
                     onChange={(event) => setConfirmed(event.target.checked)}
                   />
-                  I confirm these symbols, price adjustments and quote currencies match the fills
-                  and account currency ({currencies.join(", ") || "none"}).
+                  {t("components_report_market_estimates_i_confirm_these_symbols_price_ad_9832d6")}
+                  {currencies.join(", ") || t("components_report_market_estimates_none_71f8e7")}).
                 </label>
                 {currencies.length > 1 && (
                   <p className="text-xs text-muted-foreground">
-                    Select accounts with one currency to calculate estimates together.
+                    {t(
+                      "components_report_market_estimates_select_accounts_with_one_currenc_44b545",
+                    )}
                   </p>
                 )}
                 <Button
@@ -186,12 +208,13 @@ export function ReportMarketEstimates({
                   }
                   onClick={() => void calculate()}
                 >
-                  Calculate {missing.length} missing estimates
+                  {t("components_report_market_estimates_calculate_8e5903")} {missing.length}{" "}
+                  {t("components_report_market_estimates_missing_estimates_ad81b9")}
                 </Button>
               </>
             ) : (
               <a className="text-sm underline" href="/settings#market-data">
-                Connect a market data provider in Settings
+                {t("components_report_market_estimates_connect_a_market_data_provider_i_8e9683")}
               </a>
             )}
           </div>
@@ -199,7 +222,7 @@ export function ReportMarketEstimates({
       )}
       {busy && (
         <Button variant="outline" onClick={() => controller.current?.abort()}>
-          Stop calculation
+          {t("components_report_market_estimates_stop_calculation_ee3d81")}
         </Button>
       )}
       {status && (

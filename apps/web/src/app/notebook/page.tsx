@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { OptionSelect } from "@/components/ui/option-select";
 
 import { Suspense, useRef, useState } from "react";
@@ -39,6 +40,7 @@ export default function NotebookPage() {
 }
 
 function Notebook() {
+  const t = useTranslations("extracted");
   const [folder, setFolder] = useState("all");
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -70,9 +72,7 @@ function Notebook() {
       refresh();
       setFolderToDelete(null);
     } catch (error) {
-      setDeleteError(
-        error instanceof Error ? error.message : "Could not delete the folder. Try again.",
-      );
+      setDeleteError(error instanceof Error ? error.message : t("notebook_delete_folder_failed"));
     } finally {
       setDeletingFolder(false);
     }
@@ -81,7 +81,7 @@ function Notebook() {
   const createNote = async () => {
     const result = await postJson<{ id: string }>("/api/notes", {
       folderId: folder === "all" ? "my-notes" : folder,
-      title: "Untitled",
+      title: t("notebook_untitled"),
     });
     refresh();
     setSelectedId(result.id);
@@ -100,9 +100,7 @@ function Notebook() {
       setFolderOpen(false);
       setFolderName("");
     } catch (error) {
-      setFolderError(
-        error instanceof Error ? error.message : "Could not create the folder. Try again.",
-      );
+      setFolderError(error instanceof Error ? error.message : t("notebook_create_folder_failed"));
     } finally {
       setCreatingFolder(false);
     }
@@ -115,9 +113,12 @@ function Notebook() {
         onOpenChange={(open) => !open && !deletingFolder && setFolderToDelete(null)}
       >
         <DialogContent>
-          <DialogTitle>Delete “{folderToDelete?.name}”?</DialogTitle>
+          <DialogTitle>
+            {t("app_notebook_page_delete_4b2675")}
+            {folderToDelete?.name}”?
+          </DialogTitle>
           <DialogDescription>
-            The folder will be removed. Its notes will be kept in My notes.
+            {t("app_notebook_page_the_folder_will_be_removed_its_n_b43208")}
           </DialogDescription>
           {deleteError && (
             <p role="alert" className="text-sm text-destructive">
@@ -130,22 +131,26 @@ function Notebook() {
               disabled={deletingFolder}
               onClick={() => setFolderToDelete(null)}
             >
-              Cancel
+              {t("app_notebook_page_cancel_77dfd2")}
             </Button>
             <Button
               variant="destructive"
               disabled={deletingFolder}
               onClick={() => void deleteFolder()}
             >
-              {deletingFolder ? "Deleting…" : "Delete folder"}
+              {deletingFolder
+                ? t("app_notebook_page_deleting_c7ac55")
+                : t("app_notebook_page_delete_folder_5ee466")}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
       <Dialog open={folderOpen} onOpenChange={(open) => !creatingFolder && setFolderOpen(open)}>
         <DialogContent>
-          <DialogTitle>New folder</DialogTitle>
-          <DialogDescription>Organize your notes in a named folder.</DialogDescription>
+          <DialogTitle>{t("app_notebook_page_new_folder_a71199")}</DialogTitle>
+          <DialogDescription>
+            {t("app_notebook_page_organize_your_notes_in_a_named_f_160cf2")}
+          </DialogDescription>
           <form
             className="space-y-4"
             onSubmit={(event) => {
@@ -154,7 +159,7 @@ function Notebook() {
             }}
           >
             <label className="block space-y-2 text-sm">
-              <span>Folder name</span>
+              <span>{t("app_notebook_page_folder_name_b2ce02")}</span>
               <Input
                 autoFocus
                 value={folderName}
@@ -179,21 +184,23 @@ function Notebook() {
                 disabled={creatingFolder}
                 onClick={() => setFolderOpen(false)}
               >
-                Cancel
+                {t("app_notebook_page_cancel_77dfd2")}
               </Button>
               <Button type="submit" disabled={creatingFolder || !folderName.trim()}>
-                {creatingFolder ? "Creating…" : "Create folder"}
+                {creatingFolder
+                  ? t("app_notebook_page_creating_94d7d8")
+                  : t("app_notebook_page_create_folder_e59f63")}
               </Button>
             </div>
           </form>
         </DialogContent>
       </Dialog>
       <FilterBar
-        title="Notebook"
+        title={t("app_notebook_page_notebook_cbe152")}
         actions={
           <Button size="sm" onClick={createNote}>
             <Plus />
-            New note
+            {t("app_notebook_page_new_note_2b7b05")}
           </Button>
         }
       />
@@ -208,7 +215,7 @@ function Notebook() {
             )}
             onClick={() => setFolder("all")}
           >
-            All notes
+            {t("app_notebook_page_all_notes_a24d47")}
           </button>
           {data?.folders
             .filter((f) => f.id !== "all")
@@ -231,7 +238,7 @@ function Notebook() {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
-                    aria-label={`Delete folder: ${f.name}`}
+                    aria-label={t("notebook_delete_folder_aria", { name: f.name })}
                     onClick={() => requestFolderDelete(f)}
                   >
                     <Trash2 />
@@ -249,7 +256,7 @@ function Notebook() {
             }}
           >
             <FolderPlus />
-            New folder
+            {t("app_notebook_page_new_folder_a71199")}
           </Button>
         </div>
 
@@ -257,12 +264,12 @@ function Notebook() {
           <div className="sticky top-0 z-[1] space-y-2 border-b bg-background p-2">
             <div className="flex min-w-0 items-center gap-2 xl:hidden">
               <OptionSelect
-                aria-label="Note folder"
+                aria-label={t("app_notebook_page_note_folder_2901a3")}
                 value={folder}
                 onValueChange={(next) => setFolder(next)}
                 className="h-9 min-w-0 flex-1 rounded-lg border bg-card px-2 text-sm"
               >
-                <option value="all">All notes</option>
+                <option value="all">{t("app_notebook_page_all_notes_a24d47")}</option>
                 {data?.folders
                   .filter((item) => item.id !== "all")
                   .map((item) => (
@@ -277,7 +284,7 @@ function Notebook() {
                   variant="ghost"
                   size="icon"
                   className="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
-                  aria-label={`Delete folder: ${currentFolder.name}`}
+                  aria-label={t("notebook_delete_folder_aria", { name: currentFolder.name })}
                   onClick={() => requestFolderDelete(currentFolder)}
                 >
                   <Trash2 />
@@ -287,7 +294,7 @@ function Notebook() {
                 variant="ghost"
                 size="icon"
                 className="h-9 w-9 shrink-0"
-                aria-label="New folder"
+                aria-label={t("app_notebook_page_new_folder_a71199")}
                 onClick={() => {
                   setFolderError("");
                   setFolderOpen(true);
@@ -301,13 +308,15 @@ function Notebook() {
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search notes"
+                placeholder={t("app_notebook_page_search_notes_246ce5")}
                 className="pl-8"
               />
             </div>
           </div>
           {data?.notes.length === 0 && (
-            <p className="p-6 text-center text-sm text-muted-foreground">No notes here yet.</p>
+            <p className="p-6 text-center text-sm text-muted-foreground">
+              {t("app_notebook_page_no_notes_here_yet_1520d9")}
+            </p>
           )}
           {data?.notes.map((note) => (
             <button
@@ -318,9 +327,12 @@ function Notebook() {
               )}
               onClick={() => setSelectedId(note.id)}
             >
-              <div className="truncate text-sm font-medium">{note.title || "Untitled"}</div>
+              <div className="truncate text-sm font-medium">
+                {note.title || t("app_notebook_page_untitled_621521")}
+              </div>
               <div className="truncate text-xs text-muted-foreground">
-                {note.updatedAt.slice(0, 10)} · {note.content.slice(0, 60) || "empty"}
+                {note.updatedAt.slice(0, 10)} ·{" "}
+                {note.content.slice(0, 60) || t("app_notebook_page_empty_ad8710")}
               </div>
             </button>
           ))}
@@ -336,14 +348,14 @@ function Notebook() {
               onClick={() => setSelectedId(null)}
             >
               <ArrowLeft />
-              Back to notes
+              {t("app_notebook_page_back_to_notes_3c66c3")}
             </Button>
           )}
           {selected ? (
             <NoteEditor key={selected.id} note={selected} onChanged={refresh} />
           ) : (
             <p className="py-24 text-center text-sm text-muted-foreground">
-              Select or create a note.
+              {t("app_notebook_page_select_or_create_a_note_80e6aa")}
             </p>
           )}
         </div>
@@ -353,6 +365,7 @@ function Notebook() {
 }
 
 function NoteEditor({ note, onChanged }: { note: NoteRow; onChanged: () => void }) {
+  const t = useTranslations("extracted");
   const [title, setTitle] = useState(note.title);
   const [content, setContent] = useState(note.content);
   const [mode, setMode] = useState<"edit" | "preview">(note.content.trim() ? "preview" : "edit");
@@ -375,7 +388,7 @@ function NoteEditor({ note, onChanged }: { note: NoteRow; onChanged: () => void 
               save(event.target.value, content);
             }}
             className="notebook-editor-title border-0 px-0 text-lg font-semibold shadow-none focus-visible:ring-0"
-            placeholder="Title"
+            placeholder={t("app_notebook_page_title_768e0c")}
           />
           <Button
             type="button"
@@ -383,7 +396,9 @@ function NoteEditor({ note, onChanged }: { note: NoteRow; onChanged: () => void 
             size="sm"
             onClick={() => setMode(mode === "preview" ? "edit" : "preview")}
           >
-            {mode === "preview" ? "Edit" : "Preview"}
+            {mode === "preview"
+              ? t("app_notebook_page_edit_530164")
+              : t("app_notebook_page_preview_f1fbb2")}
           </Button>
           <VoiceNote
             onPrepare={() => editor.current?.focus()}
@@ -398,13 +413,13 @@ function NoteEditor({ note, onChanged }: { note: NoteRow; onChanged: () => void 
             size="sm"
             className="text-destructive"
             onClick={async () => {
-              if (confirm("Delete this note?")) {
+              if (confirm(t("app_notebook_page_delete_this_note_bbe3fa"))) {
                 await postJson(`/api/notes/${note.id}`, undefined, "DELETE");
                 onChanged();
               }
             }}
           >
-            Delete
+            {t("app_notebook_page_delete_f6fdbe")}
           </Button>
         </div>
         <RichEditor
@@ -421,10 +436,10 @@ function NoteEditor({ note, onChanged }: { note: NoteRow; onChanged: () => void 
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span role="status">{status}</span>
           <Button variant="ghost" size="sm" onClick={() => void flush()}>
-            Save now
+            {t("app_notebook_page_save_now_3989b7")}
           </Button>
         </div>
-        <ReviewExport document={{ title: title || "Journal note", lines: [content] }} />
+        <ReviewExport document={{ title: title || t("notebook_journal_note"), lines: [content] }} />
         <Attachments type="note" id={note.id} />
       </CardContent>
     </Card>

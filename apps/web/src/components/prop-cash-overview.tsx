@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   Bar,
   BarChart,
@@ -24,6 +25,7 @@ export function PropCashSummary({
   currency: string;
   privacy: boolean;
 }) {
+  const t = useTranslations("extracted");
   const money = (value: number) => (privacy ? "••••" : currency ? propMoney(value, currency) : "—");
   return (
     <div className="grid gap-3 md:grid-cols-3">
@@ -31,20 +33,22 @@ export function PropCashSummary({
         <CardContent className="p-5 sm:p-6">
           <p className="flex items-center gap-2 text-sm font-medium">
             <span className="h-2 w-2 rounded-full bg-[var(--loss)]" />
-            Money spent
+            {t("components_prop_cash_overview_money_spent_431827")}
           </p>
           <p className="mt-3 break-words text-3xl font-semibold tracking-tight tabular-nums">
             {money(summary.spent)}
           </p>
           <p className="mt-3 text-xs text-muted-foreground">
-            All fees, subscriptions and other costs
+            {t("components_prop_cash_overview_all_fees_subscriptions_and_other_53b057")}
           </p>
           <div className="mt-4 flex flex-wrap justify-between gap-2 border-t pt-3 text-xs">
             <span className="text-muted-foreground">
-              Refunded <span className="text-foreground">{money(summary.refunds)}</span>
+              {t("components_prop_cash_overview_refunded_d6fbc7")}{" "}
+              <span className="text-foreground">{money(summary.refunds)}</span>
             </span>
             <span className="text-muted-foreground">
-              Net cost <span className="text-foreground">{money(summary.netSpend)}</span>
+              {t("components_prop_cash_overview_net_cost_8f7b99")}{" "}
+              <span className="text-foreground">{money(summary.netSpend)}</span>
             </span>
           </div>
         </CardContent>
@@ -53,20 +57,24 @@ export function PropCashSummary({
         <CardContent className="p-5 sm:p-6">
           <p className="flex items-center gap-2 text-sm font-medium">
             <span className="h-2 w-2 rounded-full bg-[var(--brand)]" />
-            Payouts received
+            {t("components_prop_cash_overview_payouts_received_bb2fec")}
           </p>
           <p className="mt-3 break-words text-3xl font-semibold tracking-tight tabular-nums">
             {money(summary.received)}
           </p>
-          <p className="mt-3 text-xs text-muted-foreground">Money received, after any reversals</p>
+          <p className="mt-3 text-xs text-muted-foreground">
+            {t("components_prop_cash_overview_money_received_after_any_reversa_b61143")}
+          </p>
           <p className="mt-4 border-t pt-3 text-xs text-muted-foreground">
-            Pending requests are tracked separately below.
+            {t("components_prop_cash_overview_pending_requests_are_tracked_sep_9d9585")}
           </p>
         </CardContent>
       </Card>
       <Card className="bg-muted/30">
         <CardContent className="p-5 sm:p-6">
-          <p className="text-sm font-medium">Net after costs</p>
+          <p className="text-sm font-medium">
+            {t("components_prop_cash_overview_net_after_costs_b1912f")}
+          </p>
           <p
             className="mt-3 break-words text-3xl font-semibold tracking-tight tabular-nums"
             style={{
@@ -83,10 +91,10 @@ export function PropCashSummary({
             {money(summary.net)}
           </p>
           <p className="mt-3 text-xs text-muted-foreground">
-            Payouts received + refunds − money spent
+            {t("components_prop_cash_overview_payouts_received_refunds_money_s_63466b")}
           </p>
           <p className="mt-4 border-t pt-3 text-xs text-muted-foreground">
-            Return on net cost{" "}
+            {t("components_prop_cash_overview_return_on_net_cost_fdb4aa")}{" "}
             <span className="text-foreground">
               {privacy
                 ? "••••"
@@ -109,6 +117,7 @@ export function PropCashComparison({
   currency: string;
   privacy: boolean;
 }) {
+  const translate = useTranslations("extracted");
   const t = useVizTokens();
   const divisor = currency ? 10 ** currencyDigits(currency) : 1;
   const rows = [...months]
@@ -119,29 +128,34 @@ export function PropCashComparison({
       <CardContent className="p-5 sm:p-6">
         <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h3 className="text-base font-semibold">Spending vs payouts</h3>
+            <h3 className="text-base font-semibold">
+              {translate("components_prop_cash_overview_spending_vs_payouts_29d0d3")}
+            </h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Monthly cash flow{currency ? ` · ${currency}` : ""}
+              {translate("components_prop_cash_overview_monthly_cash_flow_c4b18e")}
+              {currency ? ` · ${currency}` : ""}
             </p>
           </div>
           <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
             <span className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-sm bg-[var(--loss)]" />
-              Money spent
+              {translate("components_prop_cash_overview_money_spent_431827")}
             </span>
             <span className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-sm bg-[var(--brand)]" />
-              Payouts received
+              {translate("components_prop_cash_overview_payouts_received_bb2fec")}
             </span>
           </div>
         </div>
         {privacy || !currency || !rows.length ? (
           <p className="flex min-h-48 items-center justify-center text-center text-sm text-muted-foreground">
             {privacy
-              ? "Chart hidden in privacy mode."
+              ? translate("components_prop_cash_overview_chart_hidden_in_privacy_mode_7fcde6")
               : !currency
-                ? "Choose a currency in Filters to compare spending and payouts."
-                : "Record an expense or a payout receipt to start your comparison."}
+                ? translate("components_prop_cash_overview_choose_a_currency_in_filters_to__6fef41")
+                : translate(
+                    "components_prop_cash_overview_record_an_expense_or_a_payout_re_d66236",
+                  )}
           </p>
         ) : (
           <div className="h-64 min-w-0 sm:h-72">
@@ -193,16 +207,20 @@ export function PropCashComparison({
                               {propMoney(Math.round(Number(item.value) * divisor), currency)}
                             </p>
                           ))}
-                          <p>Refunds: {propMoney(payload[0]!.payload.refunds, currency)}</p>
+                          <p>
+                            {translate("components_prop_cash_overview_refunds_92080e")}{" "}
+                            {propMoney(payload[0]!.payload.refunds, currency)}
+                          </p>
                           <p className="mt-1 border-t pt-1">
-                            Net after costs: {propMoney(payload[0]!.payload.net, currency)}
+                            {translate("components_prop_cash_overview_net_after_costs_119568")}{" "}
+                            {propMoney(payload[0]!.payload.net, currency)}
                           </p>
                         </div>
                       ) : null
                     }
                   />
                   <Bar
-                    name="Money spent"
+                    name={translate("prop_chart_money_spent")}
                     dataKey="spent"
                     fill={t.loss}
                     radius={[3, 3, 0, 0]}
@@ -210,7 +228,7 @@ export function PropCashComparison({
                     isAnimationActive={false}
                   />
                   <Bar
-                    name="Payouts received"
+                    name={translate("prop_chart_payouts_received")}
                     dataKey="received"
                     fill={t.brand}
                     radius={[3, 3, 0, 0]}
@@ -223,7 +241,7 @@ export function PropCashComparison({
           </div>
         )}
         <p className="mt-4 text-xs text-muted-foreground">
-          Refunds reduce your net cost. Hover a month for refunds and the final net amount.
+          {translate("components_prop_cash_overview_refunds_reduce_your_net_cost_hov_3833bf")}
         </p>
       </CardContent>
     </Card>

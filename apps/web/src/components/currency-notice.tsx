@@ -1,15 +1,18 @@
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { TriangleAlert } from "lucide-react";
 import type { CurrencyScope } from "@/lib/currencies";
 import { Button } from "@/components/ui/button";
 
 export function CurrencyNotice({ scope }: { scope: CurrencyScope }) {
+  const t = useTranslations("extracted");
   if (scope.converted)
     return (
       <p className="px-4 py-2 text-xs text-muted-foreground">
-        Trading P&amp;L in {scope.currency} · saved baseline conversion rates.{" "}
+        {t("components_currency_notice_trading_p_amp_l_in_35b78d")} {scope.currency}{" "}
+        {t("components_currency_notice_saved_baseline_conversion_rates_4f4e6d")}{" "}
         <Link className="underline" href="/settings#currency-conversion">
-          Edit rates
+          {t("components_currency_notice_edit_rates_8930b0")}
         </Link>
       </p>
     );
@@ -26,17 +29,23 @@ export function CurrencyNotice({ scope }: { scope: CurrencyScope }) {
         />
         <div className="space-y-1">
           <p className="font-semibold text-amber-950 dark:text-amber-100">
-            Set up conversion to see your combined dashboard
+            {t("components_currency_notice_set_up_conversion_to_see_your_co_c5fa67")}
           </p>
           <p className="text-sm text-amber-900 dark:text-amber-200">
             {scope.missingCurrencies.length
-              ? `Save conversion rates for ${scope.missingCurrencies.join(", ")} to use the reporting currency. Amounts below remain in their original currencies.`
-              : `These accounts use ${scope.sourceCurrencies.join(", ")}. Set your conversion rates to combine their performance.`}
+              ? t("currency_notice_missing_rates", {
+                  currencies: scope.missingCurrencies.join(", "),
+                })
+              : t("currency_notice_mixed_accounts", {
+                  currencies: scope.sourceCurrencies.join(", "),
+                })}
           </p>
         </div>
       </div>
       <Button asChild className="shrink-0 self-start lg:self-auto">
-        <Link href="/settings#currency-conversion">Set up currency conversion</Link>
+        <Link href="/settings#currency-conversion">
+          {t("components_currency_notice_set_up_currency_conversion_72cb47")}
+        </Link>
       </Button>
     </div>
   );

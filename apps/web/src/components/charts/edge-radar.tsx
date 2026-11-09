@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import { useState } from "react";
 
@@ -15,14 +16,14 @@ import type { EdgeScoreComponents } from "@luxalgo/journal-core";
 import { tooltipStyle, useVizTokens } from "./tokens";
 import { ChartFrame } from "./chart-frame";
 
-const LABELS: Record<keyof EdgeScoreComponents, string> = {
-  winRate: "Win %",
-  profitFactor: "Profit factor",
-  avgWinLoss: "Avg win/loss",
-  drawdown: "Drawdown",
-  recovery: "Recovery",
-  consistency: "Consistency",
-};
+const METRICS: (keyof EdgeScoreComponents)[] = [
+  "winRate",
+  "profitFactor",
+  "avgWinLoss",
+  "drawdown",
+  "recovery",
+  "consistency",
+];
 
 /** The open Edge Score, drawn from its six 0-100 components. */
 export function EdgeRadar({
@@ -33,10 +34,11 @@ export function EdgeRadar({
   height?: number | `${number}%`;
 }) {
   const t = useVizTokens();
+  const translate = useTranslations("extracted");
   const [radius, setRadius] = useState(48);
   if (!t) return <div style={{ height }} />;
-  const data = (Object.keys(LABELS) as (keyof EdgeScoreComponents)[]).map((key) => ({
-    metric: LABELS[key],
+  const data = METRICS.map((key) => ({
+    metric: translate(`edge_metric_${key}`),
     value: Math.round(components[key]),
   }));
   return (
@@ -56,7 +58,7 @@ export function EdgeRadar({
             cursor={false}
             allowEscapeViewBox={{ x: false, y: false }}
             contentStyle={tooltipStyle(t)}
-            formatter={(value) => [`${value}/100`, "Score"]}
+            formatter={(value) => [`${value}/100`, translate("edge_score")]}
           />
           <Radar
             dataKey="value"

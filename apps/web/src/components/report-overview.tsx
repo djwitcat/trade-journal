@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { AnalysisFilters, BucketStats } from "@luxalgo/journal-core";
 import { TimeHeatmap } from "./charts/time-heatmap";
 import { ReviewExport } from "./review-export";
@@ -24,16 +25,17 @@ interface OverviewData {
 
 // Keep the original overview's aggregations and ordering alongside the advanced reports.
 const SECTIONS = [
-  { key: "symbol", title: "By symbol" },
-  { key: "direction", title: "Long vs short" },
-  { key: "weekday", title: "By weekday" },
-  { key: "duration", title: "By holding time" },
-  { key: "tag", title: "By tag" },
-  { key: "mistake", title: "By mistake" },
-  { key: "playbook", title: "By playbook" },
+  { key: "symbol" },
+  { key: "direction" },
+  { key: "weekday" },
+  { key: "duration" },
+  { key: "tag" },
+  { key: "mistake" },
+  { key: "playbook" },
 ] as const;
 
 export function ReportOverview({ query, filters }: { query: string; filters: AnalysisFilters }) {
+  const t = useTranslations("extracted");
   const { data, error, loading } = useApi<OverviewData>(`/api/stats?${query}`);
   if (error)
     return (
@@ -45,8 +47,9 @@ export function ReportOverview({ query, filters }: { query: string; filters: Ana
   if (data.currencies.length > 1)
     return (
       <p className="rounded-lg border p-4 text-sm">
-        These accounts use different currencies ({data.currencies.join(", ")}). Select accounts with
-        the same currency in Filters to compare monetary results.
+        {t("components_report_overview_these_accounts_use_different_cur_519298")}
+        {data.currencies.join(", ")}
+        {t("components_report_overview_select_accounts_with_the_same_cu_cd8aa8")}
       </p>
     );
   const currency = data.currencies[0] ?? "USD";
@@ -56,26 +59,36 @@ export function ReportOverview({ query, filters }: { query: string; filters: Ana
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
-          Trading overview · {data.timeZone} · {currency}
+          {t("components_report_overview_trading_overview_3b56d2")} {data.timeZone} · {currency}
         </p>
         <ReviewExport
           containsFinancialData
           document={{
-            title: "Trading overview",
+            title: t("report_overview_export_title"),
             subtitle: `${data.timeZone} · ${currency}`,
             lines: [
-              `Filters: ${describeFilters(filters, data.accounts, data.playbooks)}`,
+              t("report_export_filters", {
+                filters: describeFilters(filters, data.accounts, data.playbooks),
+              }),
               "",
-              "Trade time performance (opening hour)",
-              ...data.buckets.hour.map(
-                (b) => `${b.key}:00: ${b.trades} trades | Net P&L ${fmtMoney(b.netPnl, currency)}`,
+              t("report_overview_trade_time"),
+              ...data.buckets.hour.map((b) =>
+                t("report_overview_hour_line", {
+                  hour: b.key,
+                  trades: b.trades,
+                  pnl: fmtMoney(b.netPnl, currency),
+                }),
               ),
               ...SECTIONS.flatMap((section) => [
                 "",
-                section.title,
-                ...data.buckets[section.key].map(
-                  (b) =>
-                    `${label(section.key, b.key)}: ${b.trades} trades | Win ${fmtPercent(b.winRate, 0)} | Net P&L ${fmtMoney(b.netPnl, currency)}`,
+                t(`report_overview_section_${section.key}`),
+                ...data.buckets[section.key].map((b) =>
+                  t("report_overview_bucket_line", {
+                    label: label(section.key, b.key),
+                    trades: b.trades,
+                    rate: fmtPercent(b.winRate, 0),
+                    pnl: fmtMoney(b.netPnl, currency),
+                  }),
                 ),
               ]),
             ],
@@ -85,7 +98,7 @@ export function ReportOverview({ query, filters }: { query: string; filters: Ana
       <div className="grid gap-3 lg:grid-cols-2">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Trade time performance</CardTitle>
+            <CardTitle>{t("components_report_overview_trade_time_performance_9485a8")}</CardTitle>
           </CardHeader>
           <CardContent>
             <TimeHeatmap hours={data.buckets.hour} currency={currency} />
@@ -94,23 +107,29 @@ export function ReportOverview({ query, filters }: { query: string; filters: Ana
         {SECTIONS.map((section) => (
           <Card key={section.key}>
             <CardHeader>
-              <CardTitle>{section.title}</CardTitle>
+              <CardTitle>{t(`report_overview_section_${section.key}`)}</CardTitle>
             </CardHeader>
             <CardContent>
               {data.buckets[section.key].length === 0 ? (
                 <p className="py-8 text-center text-sm text-muted-foreground">
                   {section.key === "tag" || section.key === "mistake" || section.key === "playbook"
-                    ? "Annotate trades to unlock this breakdown."
-                    : "No data yet."}
+                    ? t("components_report_overview_annotate_trades_to_unlock_this_b_c8f40c")
+                    : t("components_report_overview_no_data_yet_3b0b47")}
                 </p>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{section.title.replace("By ", "")}</TableHead>
-                      <TableHead className="text-right">Trades</TableHead>
-                      <TableHead className="text-right">Win %</TableHead>
-                      <TableHead className="text-right">Net P&L</TableHead>
+                      <TableHead>{t(`report_overview_section_${section.key}`)}</TableHead>
+                      <TableHead className="text-right">
+                        {t("components_report_overview_trades_597b10")}
+                      </TableHead>
+                      <TableHead className="text-right">
+                        {t("components_report_overview_win_a7c9d3")}
+                      </TableHead>
+                      <TableHead className="text-right">
+                        {t("components_report_overview_net_p_l_152aa9")}
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -138,10 +157,7 @@ export function ReportOverview({ query, filters }: { query: string; filters: Ana
         ))}
       </div>
       <p className="text-xs leading-relaxed text-muted-foreground">
-        Weekday and hour use trade opening times. Overview trade counts include open positions; win
-        rates use closed trades. Holding time requires a closed trade. Tags and mistakes can
-        overlap. By symbol shows the top 20 by net P&L; Breakdowns includes every symbol and
-        additional metrics for closed trades.
+        {t("components_report_overview_weekday_and_hour_use_trade_openi_ce1f56")}
       </p>
     </div>
   );

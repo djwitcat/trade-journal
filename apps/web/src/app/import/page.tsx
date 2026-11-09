@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Suspense, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileUp, Landmark, PencilLine } from "lucide-react";
@@ -83,24 +84,25 @@ export default function ImportPage() {
 }
 
 function ImportView() {
+  const t = useTranslations("extracted");
   const router = useRouter();
   return (
     <div>
-      <FilterBar title="Import trades" />
+      <FilterBar title={t("app_import_page_import_trades_6d9324")} />
       <div className="mx-auto max-w-3xl p-4">
         <Tabs defaultValue="file">
           <TabsList>
             <TabsTrigger value="file" className="max-sm:px-2 max-sm:text-xs">
               <FileUp className="mr-1.5 hidden h-4 w-4 min-[420px]:block" />
-              File upload
+              {t("app_import_page_file_upload_0ace8e")}
             </TabsTrigger>
             <TabsTrigger value="sync" className="max-sm:px-2 max-sm:text-xs">
               <Landmark className="mr-1.5 hidden h-4 w-4 min-[420px]:block" />
-              Broker sync
+              {t("app_import_page_broker_sync_308085")}
             </TabsTrigger>
             <TabsTrigger value="manual" className="max-sm:px-2 max-sm:text-xs">
               <PencilLine className="mr-1.5 hidden h-4 w-4 min-[420px]:block" />
-              Manual
+              {t("app_import_page_manual_4e836f")}
             </TabsTrigger>
           </TabsList>
           <TabsContent value="file">
@@ -112,7 +114,7 @@ function ImportView() {
           <TabsContent value="manual">
             <Card>
               <CardHeader>
-                <CardTitle>Add executions manually</CardTitle>
+                <CardTitle>{t("app_import_page_add_executions_manually_36ced4")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <ManualTradeEntry onSaved={() => router.push("/trades")} />
@@ -126,6 +128,7 @@ function ImportView() {
 }
 
 function FileImport() {
+  const t = useTranslations("extracted");
   const router = useRouter();
   const [accountId, setAccountId] = useState("");
   const [reviewOptions, setReviewOptions] = useState<ImportReviewOptions>({});
@@ -195,19 +198,14 @@ function FileImport() {
     try {
       const pdf = /\.pdf$/i.test(file.name);
       const xlsx = /\.xlsx$/i.test(file.name);
-      if (pdf && !aiEnabled) throw new Error("Enable AI parsing to upload a PDF statement.");
-      if (xlsx && aiEnabled)
-        throw new Error(
-          "Turn off AI parsing for an XTB Excel report. The XTB importer reads it directly.",
-        );
+      if (pdf && !aiEnabled) throw new Error(t("app_import_page_enable_ai_for_pdf"));
+      if (xlsx && aiEnabled) throw new Error(t("app_import_page_disable_ai_for_xtb"));
       if (aiEnabled && file.size > AI_IMPORT_MAX_BYTES)
-        throw new Error("AI uploads must be 8 MB or smaller.");
+        throw new Error(t("app_import_page_ai_file_too_large"));
       if (xlsx && file.size > XLSX_MAX_BYTES)
-        throw new Error("Excel uploads must be a .xlsx file of 5 MB or less.");
+        throw new Error(t("app_import_page_excel_file_too_large"));
       if (aiEnabled && !/\.(csv|tsv|txt|html?|xml|pdf)$/i.test(file.name))
-        throw new Error(
-          "Choose a CSV, TSV, HTML, XML, TXT or PDF file. XTB Excel reports use the XTB importer with AI turned off.",
-        );
+        throw new Error(t("app_import_page_invalid_file_type"));
       const buffer = await file.arrayBuffer();
       let text: string;
       // Binary statements travel as base64; the server reads them.
@@ -220,9 +218,7 @@ function FileImport() {
       } else {
         text = decodeImportFile(buffer);
         if (aiEnabled && text.length > AI_IMPORT_MAX_TEXT)
-          throw new Error(
-            "Use a smaller export: AI text parsing supports up to 150,000 characters.",
-          );
+          throw new Error(t("app_import_page_ai_text_too_large"));
       }
       const fileEncoding = pdf ? "pdf" : xlsx ? "xlsx" : "text";
       setEncoding(fileEncoding);
@@ -241,7 +237,9 @@ function FileImport() {
         }),
       );
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Import preview failed");
+      setError(
+        cause instanceof Error ? cause.message : t("app_import_page_import_preview_failed_97bc12"),
+      );
     } finally {
       setBusy(false);
     }
@@ -268,7 +266,9 @@ function FileImport() {
         }),
       );
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Import preview failed");
+      setError(
+        cause instanceof Error ? cause.message : t("app_import_page_import_preview_failed_97bc12"),
+      );
     } finally {
       setBusy(false);
     }
@@ -289,7 +289,9 @@ function FileImport() {
       );
       setMappingApplied(true);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Import preview failed");
+      setError(
+        cause instanceof Error ? cause.message : t("app_import_page_import_preview_failed_97bc12"),
+      );
     } finally {
       setBusy(false);
     }
@@ -327,14 +329,22 @@ function FileImport() {
       });
       const skippedNote =
         result.skipped && result.skipped > 0
-          ? ` ${result.skipped} invalid rows were skipped: ${(result.warnings ?? []).at(-1) ?? ""}`
+          ? t("import_skipped_rows", {
+              count: result.skipped,
+              warning: (result.warnings ?? []).at(-1) ?? "",
+            })
           : "";
       alert(
-        `Imported ${result.inserted} executions (${result.duplicates} duplicates skipped, ${result.corrected ?? 0} fee corrections).${skippedNote}`,
+        t("import_completed", {
+          inserted: result.inserted,
+          duplicates: result.duplicates,
+          corrected: result.corrected ?? 0,
+          skipped: skippedNote,
+        }),
       );
       router.push(`/?accounts=${encodeURIComponent(accountId)}`);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Import failed");
+      setError(cause instanceof Error ? cause.message : t("app_import_page_import_failed_fbae89"));
     } finally {
       setBusy(false);
     }
@@ -346,7 +356,7 @@ function FileImport() {
     <div className="space-y-3">
       <Card>
         <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0">
-          <CardTitle>Upload a statement or export</CardTitle>
+          <CardTitle>{t("app_import_page_upload_a_statement_or_export_b4d3b7")}</CardTitle>
           <AiImportOptions
             enabled={aiEnabled}
             onEnabledChange={(enabled) => {
@@ -371,11 +381,11 @@ function FileImport() {
               htmlFor="statement-timezone"
               className="mb-1 block text-xs text-muted-foreground"
             >
-              Statement timezone (IANA)
+              {t("app_import_page_statement_timezone_iana_a5c593")}
             </Label>
             <TimeZonePicker
               id="statement-timezone"
-              label="Statement timezone"
+              label={t("app_import_page_statement_timezone_c28125")}
               value={timeZone}
               disabled={busy || !settingsData}
               describedBy="statement-timezone-help"
@@ -387,12 +397,11 @@ function FileImport() {
               }}
             />
             <p id="statement-timezone-help" className="mt-1 text-xs text-muted-foreground">
-              Choose the timezone used by your broker's statement. Timestamps with an explicit
-              offset keep that offset. Your journal displays times in {displayTimeZone}.
+              {t("app_import_page_choose_the_timezone_used_by_your_0eafb0")} {displayTimeZone}.
             </p>
             {timeZone && !validTimeZone && (
               <p role="alert" className="mt-1 text-xs text-loss">
-                Enter a valid IANA timezone, such as Europe/Helsinki.
+                {t("app_import_page_enter_a_valid_iana_timezone_such_4f6541")}
               </p>
             )}
             {settingsError && (
@@ -405,23 +414,20 @@ function FileImport() {
             <FileUp className="h-6 w-6 text-muted-foreground" />
             <span className="text-sm">
               {fileName ||
-                (aiEnabled
-                  ? "Choose a statement for AI parsing"
-                  : "Choose a CSV / HTML / XML statement or an XTB Excel report")}
+                (aiEnabled ? t("import_choose_ai_statement") : t("import_choose_statement"))}
             </span>
             <span className="text-xs text-muted-foreground">
               {aiEnabled ? (
-                "CSV, TSV, HTML, XML, TXT or PDF. Your file stays local until you preview with AI."
+                t("import_ai_file_hint")
               ) : (
                 <>
-                  Auto-detected:{" "}
+                  {t("app_import_page_auto_detected_850558")}{" "}
                   {[
                     ...new Set(
                       formatData?.formats.map((format) => format.label.split(" (")[0]) ?? [],
                     ),
                   ].join(", ")}{" "}
-                  — anything else via column mapping. XTB: one .xlsx per account. Closed positions
-                  and open holdings are imported; cash operations are left out.
+                  {t("app_import_page_anything_else_via_column_mapping_d0e6e2")}
                 </>
               )}
             </span>
@@ -449,11 +455,11 @@ function FileImport() {
             >
               {busy
                 ? aiEnabled
-                  ? "AI is reading your statement…"
-                  : "Reading…"
+                  ? t("app_import_page_ai_is_reading_your_statement_d7818e")
+                  : t("app_import_page_reading_ae18b7")
                 : aiEnabled
-                  ? "Preview with AI"
-                  : "Preview file"}
+                  ? t("app_import_page_preview_with_ai_9b5927")
+                  : t("app_import_page_preview_file_420bc4")}
             </Button>
           )}
 
@@ -465,11 +471,11 @@ function FileImport() {
           {preview?.needsSymbol && (
             <div className="flex flex-wrap items-end gap-2">
               <label className="min-w-0 flex-1 text-xs text-muted-foreground">
-                Symbol
+                {t("app_import_page_symbol_3f84ef")}
                 <Input
                   value={symbol}
                   onChange={(event) => setSymbol(event.target.value.toUpperCase())}
-                  placeholder="AAPL, EURUSD…"
+                  placeholder={t("app_import_page_aapl_eurusd_2db94f")}
                   className="mt-1"
                 />
               </label>
@@ -479,21 +485,21 @@ function FileImport() {
                 onClick={previewFile}
                 disabled={busy || !symbol.trim()}
               >
-                Preview
+                {t("app_import_page_preview_f1fbb2")}
               </Button>
             </div>
           )}
           {preview?.needsMapping && preview.headers && (
             <div className="space-y-2 rounded-md border p-3">
               <p className="text-sm">
-                Format not recognized — map your columns (nothing is guessed silently):
+                {t("app_import_page_format_not_recognized_map_your_c_d1953a")}
               </p>
               <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
                 {mappingFields.map((field) => (
                   <div key={field}>
                     <Label className="mb-1 block text-xs capitalize text-muted-foreground">
                       {field}
-                      {field === "fee" ? " (optional)" : ""}
+                      {field === "fee" ? t("app_import_page_optional_b16c7a") : ""}
                     </Label>
                     <Select
                       value={mapping[field] ?? "none"}
@@ -502,7 +508,7 @@ function FileImport() {
                       }
                     >
                       <SelectTrigger className="h-8 text-xs">
-                        <SelectValue placeholder="column" />
+                        <SelectValue placeholder={t("app_import_page_column_aa6023")} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">—</SelectItem>
@@ -518,12 +524,10 @@ function FileImport() {
               </div>
               <details className="space-y-2 text-xs">
                 <summary className="cursor-pointer text-muted-foreground">
-                  Position identity and ordering (optional)
+                  {t("app_import_page_position_identity_and_ordering_o_2b0ccf")}
                 </summary>
                 <p className="text-muted-foreground">
-                  For Open/Close Long/Short rows, map source position IDs, execution IDs or sequence
-                  numbers when available. Columns named Position ID, Execution ID, Fill ID and
-                  Sequence are recognized automatically. An order ID is not an execution ID.
+                  {t("app_import_page_for_open_close_long_short_rows_m_80e840")}
                 </p>
                 <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
                   {(["positionId", "executionId", "sequence"] as const).map((field) => (
@@ -531,9 +535,9 @@ function FileImport() {
                       <Label className="mb-1 block text-xs capitalize text-muted-foreground">
                         {
                           {
-                            positionId: "Position ID",
-                            executionId: "Execution ID",
-                            sequence: "Sequence",
+                            positionId: t("import_position_id"),
+                            executionId: t("import_execution_id"),
+                            sequence: t("import_sequence"),
                           }[field]
                         }
                       </Label>
@@ -544,7 +548,7 @@ function FileImport() {
                         }
                       >
                         <SelectTrigger className="h-8 text-xs">
-                          <SelectValue placeholder="column" />
+                          <SelectValue placeholder={t("app_import_page_column_aa6023")} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">—</SelectItem>
@@ -571,7 +575,7 @@ function FileImport() {
                   !mapping.timestamp
                 }
               >
-                Preview with mapping
+                {t("app_import_page_preview_with_mapping_a6c007")}
               </Button>
             </div>
           )}
@@ -580,8 +584,12 @@ function FileImport() {
             <div className="space-y-2 rounded-md border p-3">
               <div className="flex flex-wrap items-center gap-2 text-sm">
                 <Badge variant="secondary">{preview.detected}</Badge>
-                <span>{preview.totals.executions} executions</span>
-                <span className="text-muted-foreground">· {preview.totals.symbols} symbols</span>
+                <span>
+                  {preview.totals.executions} {t("app_import_page_executions_8319d6")}
+                </span>
+                <span className="text-muted-foreground">
+                  · {preview.totals.symbols} {t("app_import_page_symbols_46a22d")}
+                </span>
                 {preview.totals.from && (
                   <span className="text-muted-foreground">
                     · {dayKeyOf(preview.totals.from, displayTimeZone)} →{" "}
@@ -590,12 +598,13 @@ function FileImport() {
                 )}
                 {preview.totals.skippedRows > 0 && (
                   <span className="text-muted-foreground">
-                    · {preview.totals.skippedRows} rows skipped
+                    · {preview.totals.skippedRows} {t("app_import_page_rows_skipped_4e60ed")}
                   </span>
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
-                Statement timezone: {preview.timeZone}. Preview times: {displayTimeZone}.
+                {t("app_import_page_statement_timezone_7a8e3b")} {preview.timeZone}
+                {t("app_import_page_preview_times_e44980")} {displayTimeZone}.
               </p>
               {!!preview.executions?.length && (
                 <div className="space-y-1 border-t pt-2 text-xs">
@@ -621,27 +630,30 @@ function FileImport() {
                           </span>
                           {preview.aiPreviewToken && (
                             <span>
-                              {execution.quantity} @ {execution.price} · Fees {execution.fee}
+                              {execution.quantity} @ {execution.price}{" "}
+                              {t("app_import_page_fees_181fda")} {execution.fee}
                             </span>
                           )}
                         </div>
                         {preview.aiPreviewToken && preview.sources?.[index] && (
                           <p className="mt-0.5 text-muted-foreground">
-                            Source: {preview.sources[index]}
+                            {t("app_import_page_source_922acd")} {preview.sources[index]}
                           </p>
                         )}
                       </div>
                     ))}
                   </div>
                   {!preview.aiPreviewToken && preview.totals.executions > 5 && (
-                    <p className="text-muted-foreground">Showing the first 5 executions.</p>
+                    <p className="text-muted-foreground">
+                      {t("app_import_page_showing_the_first_5_executions_23aabf")}
+                    </p>
                   )}
                 </div>
               )}
               <p className="text-xs text-muted-foreground">
                 {preview.detected === "ninjatrader"
-                  ? "Recovering an older NinjaTrader import or correcting its timezone? Import the complete history into a new journal account, then compare totals. Keep the original account and its reviews until you have verified the recovery."
-                  : "Correcting a previous import? Remove the affected trades before importing again with a different timezone to avoid duplicates. Back up your data first."}
+                  ? t("app_import_page_recovering_an_older_ninjatrader__15af4f")
+                  : t("app_import_page_correcting_a_previous_import_rem_5effc0")}
               </p>
               {preview.warnings?.map((warning, index) => (
                 <p key={index} className="text-xs text-muted-foreground">
@@ -687,7 +699,7 @@ function FileImport() {
                   (preview.detected === "ninjatrader" && !preview.reconciliation?.token)
                 }
               >
-                {busy ? "Importing…" : "Import"}
+                {busy ? t("app_import_page_importing_820599") : t("app_import_page_import_d6fbc9")}
               </Button>
               {preview.aiPreviewToken && (
                 <label className="flex items-start gap-2 text-xs text-muted-foreground">
@@ -696,8 +708,7 @@ function FileImport() {
                     disabled={busy}
                     onCheckedChange={(checked) => setAiReviewed(checked === true)}
                   />
-                  I compared all extracted executions with my statement, including the account,
-                  quantities, prices, fees and timestamps. Import this preview.
+                  {t("app_import_page_i_compared_all_extracted_executi_46a9dc")}
                 </label>
               )}
             </div>
@@ -709,6 +720,7 @@ function FileImport() {
 }
 
 function BrokerConnect() {
+  const t = useTranslations("extracted");
   const router = useRouter();
   const { data } = useApi<{ brokers: BrokerInfo[] }>("/api/brokers");
   const { data: settingsData, error: settingsError } = useApi<{ importTimeZone: string }>(
@@ -737,12 +749,17 @@ function BrokerConnect() {
       });
       if (created.sync.skipped > 0) {
         alert(
-          `${created.sync.skipped} broker record(s) were skipped: ${created.sync.skippedReasons.join(" ")}`,
+          t("import_broker_skipped", {
+            count: created.sync.skipped,
+            reasons: created.sync.skippedReasons.join(" "),
+          }),
         );
       }
       router.push(`/?accounts=${encodeURIComponent(created.id)}`);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Connection failed");
+      setError(
+        cause instanceof Error ? cause.message : t("app_import_page_connection_failed_202caa"),
+      );
     } finally {
       setBusy(false);
     }
@@ -751,11 +768,13 @@ function BrokerConnect() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Connect a broker (read-only keys, stored encrypted on YOUR machine)</CardTitle>
+        <CardTitle>{t("app_import_page_connect_a_broker_read_only_keys__35e3b3")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div>
-          <Label className="mb-1 block text-xs text-muted-foreground">Broker / exchange</Label>
+          <Label className="mb-1 block text-xs text-muted-foreground">
+            {t("app_import_page_broker_exchange_6fabe5")}
+          </Label>
           <Select
             value={brokerId}
             onValueChange={(value) => {
@@ -764,7 +783,7 @@ function BrokerConnect() {
             }}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Choose a broker" />
+              <SelectValue placeholder={t("app_import_page_choose_a_broker_17612c")} />
             </SelectTrigger>
             <SelectContent>
               {data?.brokers.map((b) => (
@@ -783,14 +802,16 @@ function BrokerConnect() {
             {broker.id === "ibkr-flex" && (
               <p className="text-xs text-muted-foreground">
                 {settingsError
-                  ? "Could not load the import timezone. Refresh and try again."
+                  ? t("app_import_page_could_not_load_the_import_timezo_da54ce")
                   : settingsData
-                    ? `Statement timezone: ${settingsData.importTimeZone}. Used for Flex timestamps without an offset, and required for Flex XML files uploaded into this account. Change it in Settings → Journal before connecting.`
-                    : "Loading statement timezone…"}
+                    ? t("import_statement_timezone_hint", { timezone: settingsData.importTimeZone })
+                    : t("app_import_page_loading_statement_timezone_95732f")}
               </p>
             )}
             <div>
-              <Label className="mb-1 block text-xs text-muted-foreground">Account name</Label>
+              <Label className="mb-1 block text-xs text-muted-foreground">
+                {t("app_import_page_account_name_abe4d6")}
+              </Label>
               <Input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
@@ -822,7 +843,9 @@ function BrokerConnect() {
                 (broker.id === "ibkr-flex" && !isTimeZone(settingsData?.importTimeZone))
               }
             >
-              {busy ? "Connecting…" : "Connect & sync"}
+              {busy
+                ? t("app_import_page_connecting_fd3e79")
+                : t("app_import_page_connect_sync_1e2054")}
             </Button>
           </>
         )}

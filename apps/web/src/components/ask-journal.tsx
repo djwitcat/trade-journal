@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,11 +12,7 @@ import { useFilters } from "./filter-bar";
 import { useAiRequest, type AiScope } from "@/lib/use-ai-request";
 import type { AnalysisFilters } from "@luxalgo/journal-core";
 
-const SUGGESTIONS = [
-  "What's my most expensive mistake?",
-  "Which weekday should I stop trading?",
-  "Am I better at longs or shorts?",
-];
+const SUGGESTIONS = ["mistake", "weekday", "direction"] as const;
 
 /** Natural-language questions against your own aggregates — BYO AI provider key. */
 export function AskJournal() {
@@ -24,6 +21,7 @@ export function AskJournal() {
 }
 
 function ScopedAskJournal({ filters, timeZone }: { filters: AnalysisFilters; timeZone: string }) {
+  const t = useTranslations("extracted");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<{ answer: string; scope: AiScope } | null>(null);
   const { run, busy, error, dismiss } = useAiRequest();
@@ -48,11 +46,11 @@ function ScopedAskJournal({ filters, timeZone }: { filters: AnalysisFilters; tim
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Ask your journal</CardTitle>
+        <CardTitle>{t("components_ask_journal_ask_your_journal_afb3a2")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         <p className="text-xs text-muted-foreground">
-          Uses the selected accounts and journal filters. Changing filters clears the answer.
+          {t("components_ask_journal_uses_the_selected_accounts_and_j_1dea67")}
         </p>
         <form
           className="flex gap-2"
@@ -62,30 +60,33 @@ function ScopedAskJournal({ filters, timeZone }: { filters: AnalysisFilters; tim
           }}
         >
           <Input
-            aria-label="Ask your journal a question"
+            aria-label={t("components_ask_journal_ask_your_journal_a_question_55ecf5")}
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
-            placeholder="Why do my Monday shorts keep failing?"
+            placeholder={t("components_ask_journal_why_do_my_monday_shorts_keep_fai_02d0ee")}
           />
           <Button type="submit" disabled={busy || !question.trim()}>
             <Sparkles />
-            {busy ? "Thinking…" : "Ask"}
+            {busy ? t("ask_thinking") : t("ask_submit")}
           </Button>
         </form>
         <div className="flex flex-wrap gap-1.5">
-          {SUGGESTIONS.map((suggestion) => (
-            <button
-              key={suggestion}
-              disabled={busy}
-              className="rounded-full border px-2.5 py-1 text-xs text-muted-foreground hover:bg-accent disabled:cursor-wait disabled:opacity-50"
-              onClick={() => {
-                setQuestion(suggestion);
-                void ask(suggestion);
-              }}
-            >
-              {suggestion}
-            </button>
-          ))}
+          {SUGGESTIONS.map((key) => {
+            const suggestion = t(`ask_suggestion_${key}`);
+            return (
+              <button
+                key={key}
+                disabled={busy}
+                className="rounded-full border px-2.5 py-1 text-xs text-muted-foreground hover:bg-accent disabled:cursor-wait disabled:opacity-50"
+                onClick={() => {
+                  setQuestion(suggestion);
+                  void ask(suggestion);
+                }}
+              >
+                {suggestion}
+              </button>
+            );
+          })}
         </div>
         {error && (
           <AiNotice error={error} onRetry={() => void ask(lastQuestion)} onDismiss={dismiss} />

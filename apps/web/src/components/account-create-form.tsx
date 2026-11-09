@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,7 @@ export function AccountCreateForm({
   className?: string;
   showTitle?: boolean;
 }) {
+  const t = useTranslations("extracted");
   const [name, setName] = useState("");
   const [currency, setCurrency] = useState("USD");
   const [balance, setBalance] = useState("0");
@@ -59,7 +61,11 @@ export function AccountCreateForm({
       setName("");
       setBalance("0");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Account creation failed.");
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : t("components_account_create_form_account_creation_failed_25e00f"),
+      );
     } finally {
       setSaving(false);
       onSavingChange?.(false);
@@ -73,10 +79,16 @@ export function AccountCreateForm({
         if (!saving) void create();
       }}
     >
-      {showTitle && <h3 className="text-sm font-medium">Create account</h3>}
+      {showTitle && (
+        <h3 className="text-sm font-medium">
+          {t("components_account_create_form_create_account_aaf374")}
+        </h3>
+      )}
       {!kind && (
         <div className="space-y-1">
-          <Label htmlFor={`${fieldId}-kind`}>Account type</Label>
+          <Label htmlFor={`${fieldId}-kind`}>
+            {t("components_account_create_form_account_type_144b49")}
+          </Label>
           <select
             id={`${fieldId}-kind`}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -84,14 +96,18 @@ export function AccountCreateForm({
             disabled={saving}
             onChange={(event) => setAccountKind(event.target.value as "manual" | "import")}
           >
-            <option value="manual">Manual trades</option>
-            <option value="import">File import</option>
+            <option value="manual">
+              {t("components_account_create_form_manual_trades_85760d")}
+            </option>
+            <option value="import">{t("components_account_create_form_file_import_df8b27")}</option>
           </select>
         </div>
       )}
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="space-y-1">
-          <Label htmlFor={`${fieldId}-name`}>Account name</Label>
+          <Label htmlFor={`${fieldId}-name`}>
+            {t("components_account_create_form_account_name_abe4d6")}
+          </Label>
           <Input
             id={`${fieldId}-name`}
             autoFocus
@@ -100,11 +116,13 @@ export function AccountCreateForm({
             value={name}
             onChange={(event) => setName(event.target.value)}
             disabled={saving}
-            placeholder="Trading test account"
+            placeholder={t("components_account_create_form_trading_test_account_64d5e6")}
           />
         </div>
         <div className="space-y-1">
-          <Label htmlFor={`${fieldId}-currency`}>Currency</Label>
+          <Label htmlFor={`${fieldId}-currency`}>
+            {t("components_account_create_form_currency_e070de")}
+          </Label>
           <CurrencyPicker
             id={`${fieldId}-currency`}
             value={currency}
@@ -113,7 +131,9 @@ export function AccountCreateForm({
           />
         </div>
         <div className="space-y-1">
-          <Label htmlFor={`${fieldId}-balance`}>Starting balance</Label>
+          <Label htmlFor={`${fieldId}-balance`}>
+            {t("components_account_create_form_starting_balance_7d5451")}
+          </Label>
           <Input
             id={`${fieldId}-balance`}
             required
@@ -142,7 +162,9 @@ export function AccountCreateForm({
           Number(balance) < 0
         }
       >
-        {saving ? "Creating…" : "Create account"}
+        {saving
+          ? t("components_account_create_form_creating_94d7d8")
+          : t("components_account_create_form_create_account_aaf374")}
       </Button>
     </form>
   );

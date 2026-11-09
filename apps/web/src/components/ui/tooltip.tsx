@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import * as React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
@@ -56,11 +57,12 @@ export function HoverHint({
 }
 
 export function HelpHint({ heading, children }: { heading: string; children: React.ReactNode }) {
+  const t = useTranslations("extracted");
   return (
     <HoverHint heading={heading} content={children}>
       <button
         type="button"
-        aria-label={`About ${heading}`}
+        aria-label={t("ui_about_heading", { heading })}
         className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground/70 transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <CircleHelp aria-hidden="true" className="h-3.5 w-3.5" />

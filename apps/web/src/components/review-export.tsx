@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { Download, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ export function ReviewExport({
   document: ReviewDocument;
   containsFinancialData?: boolean;
 }) {
+  const t = useTranslations("extracted");
   const privateMode = usePrivacy();
   const concealed = privateMode && containsFinancialData;
   const [busy, setBusy] = useState(false),
@@ -47,7 +49,7 @@ export function ReviewExport({
       setPreviewDocument(document);
       setOpen(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Export failed.");
+      setError(e instanceof Error ? e.message : t("components_review_export_export_failed_5f25d6"));
     } finally {
       setBusy(false);
     }
@@ -63,7 +65,7 @@ export function ReviewExport({
           onClick={() => void run(false)}
         >
           <Download />
-          Export PDF
+          {t("components_review_export_export_pdf_3dd7d5")}
         </Button>
         <Button
           type="button"
@@ -73,12 +75,12 @@ export function ReviewExport({
           onClick={() => void run(true)}
         >
           <ImageIcon />
-          Export PNG
+          {t("components_review_export_export_png_5fe908")}
         </Button>
       </div>
       {concealed && (
         <p className="text-xs text-muted-foreground">
-          Turn off privacy mode to export financial figures.
+          {t("components_review_export_turn_off_privacy_mode_to_export__efd363")}
         </p>
       )}
       {error && (
@@ -89,20 +91,23 @@ export function ReviewExport({
       <Dialog open={open && !concealed} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Review export</DialogTitle>
+            <DialogTitle>{t("components_review_export_review_export_219cf3")}</DialogTitle>
           </DialogHeader>
           {files.map((f, i) => (
             <div key={f.url} className="space-y-3">
               <Button asChild size="sm">
                 <a href={f.url} download={f.filename}>
-                  Download {f.type === "application/pdf" ? "PDF" : "PNG"}
+                  {t("components_review_export_download_a479c9")}{" "}
+                  {f.type === "application/pdf"
+                    ? t("components_review_export_pdf_d613d8")
+                    : t("components_review_export_png_70fe60")}
                   {files.length > 1 ? ` · ${i + 1}/${files.length}` : ""}
                 </a>
               </Button>
               {f.type === "application/pdf" ? (
                 <div className="rounded border bg-white p-6 text-slate-800">
                   <p className="mb-4 text-xs text-slate-500">
-                    Review text · download the PDF for the paginated document.
+                    {t("components_review_export_review_text_download_the_pdf_for_5d595f")}
                   </p>
                   <h3 className="mb-2 text-xl font-semibold">{previewDocument?.title}</h3>
                   <p className="mb-6 text-xs text-slate-500">{previewDocument?.subtitle}</p>
@@ -111,7 +116,11 @@ export function ReviewExport({
                   </div>
                 </div>
               ) : (
-                <img src={f.url} alt="Exported journal review" className="w-full rounded border" />
+                <img
+                  src={f.url}
+                  alt={t("components_review_export_exported_journal_review_e3ee14")}
+                  className="w-full rounded border"
+                />
               )}
             </div>
           ))}

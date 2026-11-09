@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { Moon, Sun } from "lucide-react";
 import { THEME_KEY, themePreference, type Theme } from "@/lib/theme";
@@ -8,6 +9,7 @@ import { Button } from "./ui/button";
 const ThemeContext = createContext({ theme: "dark" as Theme, ready: false, toggle: () => {} });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  const t = useTranslations("extracted");
   const [theme, setTheme] = useState<Theme>("dark");
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
@@ -35,7 +37,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       localStorage.setItem(THEME_KEY, next);
       setError("");
     } catch {
-      setError("Appearance changed, but your browser could not save it for next time.");
+      setError(t("components_theme_save_failed"));
     }
   };
   return (
@@ -54,8 +56,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 }
 
 export function ThemeToggle({ iconOnly = false }: { iconOnly?: boolean }) {
+  const t = useTranslations("extracted");
   const { theme, ready, toggle } = useContext(ThemeContext);
-  const label = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+  const label =
+    theme === "dark" ? t("components_theme_switch_to_light") : t("components_theme_switch_to_dark");
   return (
     <Button
       type="button"
@@ -72,7 +76,8 @@ export function ThemeToggle({ iconOnly = false }: { iconOnly?: boolean }) {
       title={iconOnly ? label : undefined}
     >
       {theme === "dark" ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
-      {!iconOnly && (theme === "dark" ? "Light mode" : "Dark mode")}
+      {!iconOnly &&
+        (theme === "dark" ? t("components_theme_light_mode") : t("components_theme_dark_mode"))}
     </Button>
   );
 }

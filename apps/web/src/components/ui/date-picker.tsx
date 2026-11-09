@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useId, useState } from "react";
 import dynamic from "next/dynamic";
 import * as Popover from "@radix-ui/react-popover";
@@ -10,8 +11,19 @@ import { formatDateInput, parseDateInput } from "@/lib/date-input";
 
 // The calendar is loaded on demand, not in every page's initial filter-bar bundle.
 const Calendar = dynamic(() => import("./calendar").then((module) => module.Calendar), {
-  loading: () => <div role="status" aria-label="Loading calendar" className="h-[300px]" />,
+  loading: () => <CalendarLoading />,
 });
+
+function CalendarLoading() {
+  const t = useTranslations("extracted");
+  return (
+    <div
+      role="status"
+      aria-label={t("components_ui_date_picker_loading_calendar")}
+      className="h-[300px]"
+    />
+  );
+}
 
 export function DatePicker({
   value,
@@ -28,6 +40,7 @@ export function DatePicker({
   max?: string;
   disabled?: boolean;
 }) {
+  const t = useTranslations("extracted");
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(value);
   const [invalid, setInvalid] = useState(false);
@@ -54,7 +67,7 @@ export function DatePicker({
             aria-label={label}
             aria-invalid={invalid || undefined}
             aria-describedby={invalid ? errorId : undefined}
-            placeholder="YYYY-MM-DD"
+            placeholder={t("components_ui_date_picker_yyyy_mm_dd_d3f8f7")}
             disabled={disabled}
             className="journal-date-input pr-10 tabular-nums"
             onChange={(event) => {
@@ -79,7 +92,7 @@ export function DatePicker({
             <button
               type="button"
               disabled={disabled}
-              aria-label={`Choose ${label.toLowerCase()} date`}
+              aria-label={t("ui_choose_date", { label })}
               className="absolute top-0 right-0 flex size-9 items-center justify-center rounded-r-md text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             >
               <CalendarDays aria-hidden="true" className="size-4" />
@@ -87,15 +100,16 @@ export function DatePicker({
           </Popover.Trigger>
           {invalid && (
             <span id={errorId} role="alert" className="mt-1 block text-xs text-destructive">
-              Enter a valid date (YYYY-MM-DD){max ? ` on or before ${max}` : ""}
-              {min ? ` on or after ${min}` : ""}.
+              {t("components_ui_date_picker_enter_a_valid_date_yyyy_mm_dd_ef7924")}
+              {max ? t("ui_date_before", { date: max }) : ""}
+              {min ? t("ui_date_after", { date: min }) : ""}.
             </span>
           )}
         </span>
       </Popover.Anchor>
       <Popover.Portal>
         <Popover.Content
-          aria-label={`${label} calendar`}
+          aria-label={t("ui_label_calendar", { label })}
           align="start"
           sideOffset={8}
           collisionPadding={12}
@@ -111,7 +125,7 @@ export function DatePicker({
           />
           <div className="mt-3 flex items-center justify-between border-t pt-2">
             <Button variant="ghost" size="sm" disabled={!draft} onClick={() => select("")}>
-              Clear
+              {t("components_ui_date_picker_clear_719ea3")}
             </Button>
             <Button
               variant="ghost"
@@ -119,7 +133,7 @@ export function DatePicker({
               disabled={!allowed(today)}
               onClick={() => select(today)}
             >
-              Today
+              {t("components_ui_date_picker_today_24345a")}
             </Button>
           </div>
         </Popover.Content>

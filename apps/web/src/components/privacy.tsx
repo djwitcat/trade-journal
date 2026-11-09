@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "./ui/button";
@@ -10,6 +11,7 @@ const PrivacyContext = createContext({ enabled: true, ready: false, error: "", t
 export const usePrivacy = () => useContext(PrivacyContext).enabled;
 
 export function PrivacyProvider({ children }: { children: ReactNode }) {
+  const t = useTranslations("extracted");
   // Hide amounts until the saved preference has loaded, avoiding a flash on direct navigation.
   const [enabled, setEnabled] = useState(true),
     [ready, setReady] = useState(false),
@@ -23,7 +25,7 @@ export function PrivacyProvider({ children }: { children: ReactNode }) {
         if (current === null) localStorage.setItem(PRIVACY_KEY, String(saved));
         setError("");
       } catch {
-        setError("Could not read your privacy preference.");
+        setError(t("components_privacy_read_failed"));
       }
       setReady(true);
     };
@@ -42,7 +44,7 @@ export function PrivacyProvider({ children }: { children: ReactNode }) {
       localStorage.setItem(PRIVACY_KEY, String(next));
       setError("");
     } catch {
-      setError("Privacy changed for this page, but could not be saved in this browser.");
+      setError(t("components_privacy_save_failed"));
     }
   };
   return (
@@ -59,6 +61,7 @@ export function PrivacyToggle({
   compact?: boolean;
   iconOnly?: boolean;
 }) {
+  const t = useTranslations("extracted");
   const { enabled, ready, error, toggle } = useContext(PrivacyContext);
   return (
     <div className={compact ? "relative shrink-0" : "space-y-2"}>
@@ -72,15 +75,20 @@ export function PrivacyToggle({
         }
         size="sm"
         variant={enabled ? "secondary" : "outline"}
-        aria-label={`Privacy mode ${enabled ? "on" : "off"}`}
+        aria-label={enabled ? t("components_privacy_mode_on") : t("components_privacy_mode_off")}
         aria-pressed={enabled}
         disabled={!ready}
         onClick={toggle}
-        title="Hide balances, P&L and trade prices across the journal"
+        title={t("components_privacy_hide_balances_p_l_and_trade_pric_218c93")}
       >
         {enabled ? <EyeOff /> : <Eye />}
-        {!iconOnly && (compact ? "Privacy" : "Privacy mode")}
-        {!iconOnly && <span className="ml-auto text-xs">{enabled ? "On" : "Off"}</span>}
+        {!iconOnly &&
+          (compact ? t("components_privacy_privacy") : t("components_privacy_privacy_mode"))}
+        {!iconOnly && (
+          <span className="ml-auto text-xs">
+            {enabled ? t("components_privacy_on") : t("components_privacy_off")}
+          </span>
+        )}
       </Button>
       {error && (
         <p
@@ -99,7 +107,12 @@ export function PrivacyToggle({
 }
 
 export function MonetaryValue({ children }: { children: ReactNode }) {
-  return usePrivacy() ? <span aria-label="Monetary value hidden">••••</span> : children;
+  const t = useTranslations("extracted");
+  return usePrivacy() ? (
+    <span aria-label={t("components_privacy_monetary_value_hidden_a9e457")}>••••</span>
+  ) : (
+    children
+  );
 }
 
 export function MonetaryField({
@@ -109,12 +122,13 @@ export function MonetaryField({
   children: ReactNode;
   sensitive?: boolean;
 }) {
+  const t = useTranslations("extracted");
   const enabled = usePrivacy();
   return enabled && sensitive ? (
-    <HoverHint content="Turn off privacy mode to edit this value">
+    <HoverHint content={t("components_privacy_edit_hint")}>
       <div
         className="flex h-9 items-center rounded-md border px-3 text-sm"
-        aria-label="Monetary value hidden"
+        aria-label={t("components_privacy_monetary_value_hidden_a9e457")}
         tabIndex={0}
       >
         ••••

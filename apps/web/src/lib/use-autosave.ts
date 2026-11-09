@@ -1,7 +1,9 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 /** Merge rapid edits and send one request at a time. Failed writes retain the latest fields for retry. */
 export function useAutosave(url: string, method: "PATCH" | "PUT" = "PATCH", onSaved?: () => void) {
+  const t = useTranslations("extracted");
   const [status, setStatus] = useState("");
   const pending = useRef<Record<string, unknown>>({});
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -24,15 +26,21 @@ export function useAutosave(url: string, method: "PATCH" | "PUT" = "PATCH", onSa
             keepalive: JSON.stringify(body).length < 50000,
           });
           const result = await response.json();
-          if (!response.ok) throw new Error(result.error ?? "Save failed");
+          if (!response.ok) throw new Error(result.error ?? t("autosave_failed"));
           if (mounted.current) {
-            setStatus(Object.keys(pending.current).length ? "Saving…" : "Saved");
+            setStatus(
+              Object.keys(pending.current).length ? t("autosave_saving") : t("autosave_saved"),
+            );
             callback.current?.();
           }
         } catch (e) {
           pending.current = { ...body, ...pending.current };
           if (mounted.current)
-            setStatus(`Not saved: ${e instanceof Error ? e.message : "Connection failed"}`);
+            setStatus(
+              t("autosave_not_saved", {
+                reason: e instanceof Error ? e.message : t("autosave_connection_failed"),
+              }),
+            );
           break;
         }
       }
@@ -41,7 +49,7 @@ export function useAutosave(url: string, method: "PATCH" | "PUT" = "PATCH", onSa
       running.current = null;
     });
     return running.current;
-  }, [url, method]);
+  }, [url, method, t]);
   useEffect(() => {
     mounted.current = true;
     const beforeUnload = (e: BeforeUnloadEvent) => {
@@ -60,11 +68,11 @@ export function useAutosave(url: string, method: "PATCH" | "PUT" = "PATCH", onSa
   const save = useCallback(
     (body: Record<string, unknown>) => {
       pending.current = { ...pending.current, ...body };
-      setStatus("Saving…");
+      setStatus(t("autosave_saving"));
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(() => void flush(), 500);
     },
-    [flush],
+    [flush, t],
   );
   return { save, status, flush };
 }

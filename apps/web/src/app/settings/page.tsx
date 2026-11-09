@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Suspense, useEffect, useRef, useState } from "react";
 import {
   ArrowLeftRight,
@@ -25,39 +26,27 @@ import { cn } from "@/lib/utils";
 const sections = [
   {
     id: "general",
-    label: "General",
     icon: Globe,
-    description: "Choose the timezones used to display and import your trades.",
   },
   {
     id: "trading",
-    label: "Trading",
     icon: SlidersHorizontal,
-    description: "Manage contract multipliers, breakeven rules, fees, and risk defaults.",
   },
   {
     id: "currency-conversion",
-    label: "Currency conversion",
     icon: ArrowLeftRight,
-    description: "Set a reporting currency and saved exchange rates for combined performance.",
   },
   {
     id: "market-data",
-    label: "Market data",
     icon: ChartCandlestick,
-    description: "Connect price history or upload candles for replay and trade analysis.",
   },
   {
     id: "ai-settings",
-    label: "AI",
     icon: Sparkles,
-    description: "Choose your AI provider and manage your model and API key.",
   },
   {
     id: "your-data",
-    label: "Data & backups",
     icon: Database,
-    description: "Download your journal data for safekeeping or use in other tools.",
   },
 ] as const;
 type Section = (typeof sections)[number]["id"];
@@ -78,6 +67,7 @@ export default function SettingsPage() {
 }
 
 function Settings() {
+  const t = useTranslations("extracted");
   const [active, setActive] = useState<Section>("general");
   const top = useRef<HTMLDivElement>(null);
 
@@ -101,16 +91,16 @@ function Settings() {
 
   return (
     <div>
-      <FilterBar title="Settings" />
+      <FilterBar title={t("app_settings_page_settings_c7f73b")} />
       <div
         ref={top}
         className="mx-auto grid max-w-5xl scroll-mt-20 gap-6 p-4 sm:p-6 lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-8"
       >
         <nav
-          aria-label="Settings sections"
+          aria-label={t("app_settings_page_settings_sections_2e7109")}
           className="hidden space-y-1 lg:sticky lg:top-20 lg:block lg:self-start"
         >
-          {sections.map(({ id, label, icon: Icon }) => (
+          {sections.map(({ id, icon: Icon }) => (
             <a
               key={id}
               href={`#${id}`}
@@ -135,35 +125,37 @@ function Settings() {
               }}
             >
               <Icon aria-hidden="true" className="size-4 shrink-0" />
-              {label}
+              {t(`settings_section_${id}_label`)}
             </a>
           ))}
         </nav>
         <div className="space-y-2 lg:hidden">
           <Label htmlFor="settings-section" className="text-xs text-muted-foreground">
-            Settings section
+            {t("app_settings_page_settings_section_402128")}
           </Label>
           <OptionSelect
             id="settings-section"
             value={active}
             onValueChange={(value) => openSection(value as Section)}
           >
-            {sections.map(({ id, label }) => (
+            {sections.map(({ id }) => (
               <option key={id} value={id}>
-                {label}
+                {t(`settings_section_${id}_label`)}
               </option>
             ))}
           </OptionSelect>
         </div>
         <div className="min-w-0">
-          {sections.map(({ id, label, description }) => (
+          {sections.map(({ id }) => (
             // Keep panels mounted so changing sections preserves unsaved form drafts.
             <section key={id} hidden={active !== id} aria-labelledby={`settings-heading-${id}`}>
               <div className="mb-5 space-y-1.5">
                 <h2 id={`settings-heading-${id}`} className="text-xl font-semibold tracking-tight">
-                  {label}
+                  {t(`settings_section_${id}_label`)}
                 </h2>
-                <p className="text-sm text-muted-foreground">{description}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t(`settings_section_${id}_description`)}
+                </p>
               </div>
               <div className="space-y-4">
                 {id === "general" && <TimeZoneSettings />}
@@ -179,23 +171,23 @@ function Settings() {
                 {id === "your-data" && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Export your data</CardTitle>
+                      <CardTitle>{t("app_settings_page_export_your_data_5c782d")}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <p className="text-sm text-muted-foreground">
-                        Save a full journal backup, or export your trades as a CSV.
+                        {t("app_settings_page_save_a_full_journal_backup_or_ex_f9a455")}
                       </p>
                       <div className="flex flex-wrap gap-2">
                         <Button variant="outline" asChild>
                           <a href="/api/export" download="trade-journal-export.json">
                             <Download aria-hidden="true" />
-                            Full backup (JSON)
+                            {t("app_settings_page_full_backup_json_6b5d4c")}
                           </a>
                         </Button>
                         <Button variant="outline" asChild>
                           <a href="/api/export?format=csv" download>
                             <Download aria-hidden="true" />
-                            Trades (CSV)
+                            {t("app_settings_page_trades_csv_26cf32")}
                           </a>
                         </Button>
                       </div>

@@ -15,21 +15,25 @@ export type DashboardCardSize = "small" | "medium" | "wide" | "full";
 export function dashboardLayoutPresets(ids: string[]) {
   return [
     {
+      id: "overview",
       name: "Overview",
       description: "All cards in the original order.",
       order: [],
     },
     {
+      id: "tradingDay",
       name: "Trading day",
       description: "Calendar and recent trades first, then daily results.",
       order: [8, 9, 0, 1, 3, 7, 15],
     },
     {
+      id: "performance",
       name: "Performance",
       description: "Returns, win rate, equity, and your trading edge.",
       order: [0, 1, 2, 4, 6, 7, 5, 15],
     },
     {
+      id: "riskReview",
       name: "Risk review",
       description: "Drawdown, streaks, expectancy, and daily swings.",
       order: [10, 11, 12, 14, 6, 7],

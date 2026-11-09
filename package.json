@@ -20,7 +20,8 @@
     "test:watch": "vitest",
     "typecheck": "pnpm -r --parallel typecheck",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "i18n:audit": "node scripts/i18n-audit.mjs"
   },
   "devDependencies": {
     "jsdom": "^26.1.0",

@@ -1,10 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import {
   AI_DEFAULT_MODELS,
   AI_KEY_VARIABLES,
-  AI_PROVIDER_NAMES,
   AI_PROVIDERS,
   type AiProvider,
   type AiSettingsPayload,
@@ -17,6 +17,7 @@ import { Label } from "./ui/label";
 import { OptionSelect } from "./ui/option-select";
 
 export function AiSettings() {
+  const t = useTranslations("extracted");
   const { data, error, loading, refresh } = useApi<AiSettingsPayload>("/api/settings");
   const [provider, setProvider] = useState<AiProvider>("anthropic");
   const [model, setModel] = useState(AI_DEFAULT_MODELS.anthropic);
@@ -36,17 +37,19 @@ export function AiSettings() {
   const connection = data?.aiConnections[provider];
   const environment = connection?.source === "environment";
   const compatible = provider === "compatible";
-  const name = AI_PROVIDER_NAMES[provider];
+  const name = t(`ai_provider_${provider}`);
   const disabled = busy || loading || !data;
   const keyHint = environment
-    ? `Using ${AI_KEY_VARIABLES[provider]} from the server environment. Change or remove that variable on the server to update the key.`
+    ? t("components_ai_settings_environment_key_hint", {
+        variable: AI_KEY_VARIABLES[provider] ?? "",
+      })
     : compatible
       ? connection?.source === "saved"
-        ? "Leave blank to keep your saved key. Saving a different server URL removes it."
-        : "Only needed if your server requires one."
+        ? t("components_ai_settings_saved_compatible_key_hint")
+        : t("components_ai_settings_optional_key_hint")
       : connection?.configured
-        ? "Leave blank to keep your saved key, or enter a replacement."
-        : "Add your API key, then save to use this provider.";
+        ? t("components_ai_settings_saved_key_hint")
+        : t("components_ai_settings_add_key_hint");
 
   const save = async (remove = false) => {
     setBusy(true);
@@ -68,10 +71,14 @@ export function AiSettings() {
         "PATCH",
       );
       setApiKey("");
-      setSaved(remove ? `${name} key removed.` : `${name} settings saved.`);
+      setSaved(
+        remove
+          ? t("components_ai_settings_key_removed", { name })
+          : t("components_ai_settings_settings_saved", { name }),
+      );
       refresh();
     } catch (cause) {
-      setFailure(cause instanceof Error ? cause.message : "Couldn’t save AI settings.");
+      setFailure(cause instanceof Error ? cause.message : t("components_ai_settings_save_failed"));
     } finally {
       setBusy(false);
     }
@@ -80,27 +87,26 @@ export function AiSettings() {
   return (
     <Card id="ai-settings" className="scroll-mt-24">
       <CardHeader>
-        <CardTitle>AI (bring your own key)</CardTitle>
+        <CardTitle>{t("components_ai_settings_ai_bring_your_own_key_47e5e7")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm text-muted-foreground">
-          Use Anthropic, OpenAI, DeepSeek, or an OpenAI-compatible server such as Ollama, LM Studio
-          or OpenRouter for recaps, trade critiques, and “ask your journal”. Your key is encrypted
-          at rest. AI requests go from your server directly to the provider you select.
+          {t("components_ai_settings_use_anthropic_openai_deepseek_or_6b1185")}
         </p>
         {data && (
           <p className="text-xs text-muted-foreground">
-            Active provider: {AI_PROVIDER_NAMES[data.aiProvider]} ·{" "}
+            {t("components_ai_settings_active_provider_3e60f1")}{" "}
+            {t(`ai_provider_${data.aiProvider}`)} ·{" "}
             {data.aiConfigured
               ? data.aiProvider === "compatible"
-                ? "Server configured"
-                : "Key configured"
-              : "Not configured"}
+                ? t("components_ai_settings_server_configured")
+                : t("components_ai_settings_key_configured")
+              : t("components_ai_settings_not_configured")}
           </p>
         )}
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1">
-            <Label htmlFor="ai-provider">Provider</Label>
+            <Label htmlFor="ai-provider">{t("components_ai_settings_provider_7ceee3")}</Label>
             <OptionSelect
               id="ai-provider"
               value={provider}
@@ -116,13 +122,13 @@ export function AiSettings() {
             >
               {AI_PROVIDERS.map((id) => (
                 <option key={id} value={id}>
-                  {AI_PROVIDER_NAMES[id]}
+                  {t(`ai_provider_${id}`)}
                 </option>
               ))}
             </OptionSelect>
           </div>
           <div className="space-y-1">
-            <Label htmlFor="ai-model">Model ID</Label>
+            <Label htmlFor="ai-model">{t("components_ai_settings_model_id_c7eb22")}</Label>
             <Input
               id="ai-model"
               value={model}
@@ -136,18 +142,17 @@ export function AiSettings() {
           </div>
         </div>
         <p className="text-xs text-muted-foreground">
-          Use a text model available to your provider account or server. Each provider keeps its own
-          model and key.
+          {t("components_ai_settings_use_a_text_model_available_to_yo_bba972")}
         </p>
         {compatible && (
           <div className="space-y-1">
-            <Label htmlFor="ai-base-url">Server URL</Label>
+            <Label htmlFor="ai-base-url">{t("components_ai_settings_server_url_1d5d1e")}</Label>
             <Input
               id="ai-base-url"
               type="url"
               value={baseUrl}
               disabled={disabled}
-              placeholder="http://localhost:11434/v1"
+              placeholder={t("components_ai_settings_http_localhost_11434_v1_1a9858")}
               onChange={(event) => {
                 setBaseUrl(event.target.value);
                 setSaved("");
@@ -156,15 +161,15 @@ export function AiSettings() {
               spellCheck={false}
             />
             <p className="text-xs text-muted-foreground">
-              The API root your server documents, usually ending in /v1, such as
-              http://localhost:11434/v1 for Ollama or https://openrouter.ai/api/v1. It must be
-              reachable from the machine running the journal.
+              {t("components_ai_settings_the_api_root_your_server_documen_b52316")}
             </p>
           </div>
         )}
         <div className="space-y-1">
           <Label htmlFor="ai-api-key">
-            {compatible ? "API key (optional)" : `${name} API key`}
+            {compatible
+              ? t("components_ai_settings_api_key_optional")
+              : t("components_ai_settings_provider_api_key", { name })}
           </Label>
           <Input
             id="ai-api-key"
@@ -177,9 +182,9 @@ export function AiSettings() {
             }}
             placeholder={
               connection?.source
-                ? "Key configured"
+                ? t("components_ai_settings_key_configured")
                 : compatible
-                  ? "Optional"
+                  ? t("components_ai_settings_optional")
                   : provider === "anthropic"
                     ? "sk-ant-…"
                     : "sk-…"
@@ -208,11 +213,14 @@ export function AiSettings() {
             }
             onClick={() => save()}
           >
-            {busy ? "Saving…" : "Save AI settings"}
+            {busy
+              ? t("components_ai_settings_saving")
+              : t("components_ai_settings_save_ai_settings")}
           </Button>
           {connection?.source === "saved" && (
             <Button variant="outline" disabled={disabled} onClick={() => save(true)}>
-              Remove {name} key
+              {t("components_ai_settings_remove_e96390")} {name}{" "}
+              {t("components_ai_settings_key_a62f22")}
             </Button>
           )}
         </div>

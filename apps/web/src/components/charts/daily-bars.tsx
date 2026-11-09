@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import {
   Bar,
@@ -35,6 +36,7 @@ export function DailyBars({
   currency?: string;
 }) {
   const t = useVizTokens();
+  const translate = useTranslations("extracted");
   const privateMode = usePrivacy();
   if (!t) return <div style={{ height }} />;
   return (
@@ -67,8 +69,8 @@ export function DailyBars({
           <Tooltip
             contentStyle={tooltipStyle(t)}
             formatter={(value) => [
-              privateMode ? "Hidden" : fmtMoney(Number(value), currency),
-              "Net P&L",
+              privateMode ? translate("chart_hidden") : fmtMoney(Number(value), currency),
+              translate("chart_net_pnl"),
             ]}
             cursor={{ fill: t.gridline, opacity: 0.4 }}
           />

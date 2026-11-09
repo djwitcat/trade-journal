@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { OptionSelect } from "@/components/ui/option-select";
 
 import { MonetaryField } from "./privacy";
@@ -14,6 +15,7 @@ import { Field, fieldClass } from "@/components/filter-fields";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 export function JournalDefaultSettings() {
+  const t = useTranslations("extracted");
   const { data, error } = useApi<JournalDefaults>("/api/workspace/defaults"),
     { data: accounts } = useApi<{ accounts: { id: string; name: string }[] }>("/api/accounts");
   const [draft, setDraft] = useState(EMPTY_DEFAULTS),
@@ -23,13 +25,13 @@ export function JournalDefaultSettings() {
   }, [data]);
   const matchFields = (r: FeeRule | RiskRule, update: (r: FeeRule | RiskRule) => void) => (
     <>
-      <Field label="Account">
+      <Field label={t("components_journal_default_settings_account_85dfa3")}>
         <OptionSelect
           className={fieldClass}
           value={r.accountId}
           onValueChange={(next) => update({ ...r, accountId: next })}
         >
-          <option value="">All accounts</option>
+          <option value="">{t("components_journal_default_settings_all_accounts_6a19f2")}</option>
           {accounts?.accounts.map((a) => (
             <option key={a.id} value={a.id}>
               {a.name}
@@ -37,11 +39,11 @@ export function JournalDefaultSettings() {
           ))}
         </OptionSelect>
       </Field>
-      <Field label="Symbol (blank = all)">
+      <Field label={t("components_journal_default_settings_symbol_blank_all_a14cc5")}>
         <input
           className={fieldClass}
           value={r.symbol}
-          placeholder="e.g. ES"
+          placeholder={t("components_journal_default_settings_e_g_es_d3e087")}
           onChange={(e) => update({ ...r, symbol: e.target.value.toUpperCase() })}
         />
       </Field>
@@ -50,7 +52,9 @@ export function JournalDefaultSettings() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Breakeven, fees and risk defaults</CardTitle>
+        <CardTitle>
+          {t("components_journal_default_settings_breakeven_fees_and_risk_defaults_0aff5c")}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
         {error && (
@@ -59,7 +63,7 @@ export function JournalDefaultSettings() {
           </p>
         )}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field label="Breakeven range (±)">
+          <Field label={t("components_journal_default_settings_breakeven_range_3a43c9")}>
             <MonetaryField sensitive={draft.breakevenMode === "money"}>
               <input
                 type="number"
@@ -71,7 +75,7 @@ export function JournalDefaultSettings() {
               />
             </MonetaryField>
           </Field>
-          <Field label="Range unit">
+          <Field label={t("components_journal_default_settings_range_unit_9c66a4")}>
             <OptionSelect
               className={fieldClass}
               value={draft.breakevenMode}
@@ -79,21 +83,24 @@ export function JournalDefaultSettings() {
                 setDraft({ ...draft, breakevenMode: next as "money" | "percent" })
               }
             >
-              <option value="money">Account currency</option>
-              <option value="percent">% of entry notional</option>
+              <option value="money">
+                {t("components_journal_default_settings_account_currency_5844c1")}
+              </option>
+              <option value="percent">
+                {t("components_journal_default_settings_of_entry_notional_581b3d")}
+              </option>
             </OptionSelect>
           </Field>
         </div>
         <p className="text-xs text-muted-foreground">
-          Closed trades within this net P&L range count as breakeven. Actual P&L is unchanged.
-          Percentage mode uses entry price × total entry quantity × contract multiplier; configure
-          multipliers for derivatives first.
+          {t("components_journal_default_settings_closed_trades_within_this_net_p__9c4834")}
         </p>
         <div className="space-y-3">
-          <h3 className="text-sm font-medium">Default fees</h3>
+          <h3 className="text-sm font-medium">
+            {t("components_journal_default_settings_default_fees_be6cb2")}
+          </h3>
           <p className="text-xs text-muted-foreground">
-            Applied to new fills with a zero fee, including explicit zeroes. Nonzero imported fees
-            and existing fills are kept. The first matching rule wins.
+            {t("components_journal_default_settings_applied_to_new_fills_with_a_zero_5fce7a")}
           </p>
           {draft.feeRules.map((r, i) => {
             const update = (next: FeeRule | RiskRule) =>
@@ -105,7 +112,7 @@ export function JournalDefaultSettings() {
               <div key={r.id} className="space-y-2 rounded-md border p-3">
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {matchFields(r, update)}
-                  <Field label="Fee amount">
+                  <Field label={t("components_journal_default_settings_fee_amount_de8200")}>
                     <MonetaryField>
                       <input
                         type="number"
@@ -117,14 +124,18 @@ export function JournalDefaultSettings() {
                       />
                     </MonetaryField>
                   </Field>
-                  <Field label="Charge per">
+                  <Field label={t("components_journal_default_settings_charge_per_cf4ecd")}>
                     <OptionSelect
                       className={fieldClass}
                       value={r.mode}
                       onValueChange={(next) => update({ ...r, mode: next as FeeRule["mode"] })}
                     >
-                      <option value="execution">Execution</option>
-                      <option value="unit">Unit / contract</option>
+                      <option value="execution">
+                        {t("components_journal_default_settings_execution_6d525b")}
+                      </option>
+                      <option value="unit">
+                        {t("components_journal_default_settings_unit_contract_1c9cbe")}
+                      </option>
                     </OptionSelect>
                   </Field>
                 </div>
@@ -135,7 +146,7 @@ export function JournalDefaultSettings() {
                     setDraft({ ...draft, feeRules: draft.feeRules.filter((x) => x.id !== r.id) })
                   }
                 >
-                  Remove fee rule
+                  {t("components_journal_default_settings_remove_fee_rule_87f934")}
                 </Button>
               </div>
             );
@@ -159,14 +170,15 @@ export function JournalDefaultSettings() {
               })
             }
           >
-            Add fee rule
+            {t("components_journal_default_settings_add_fee_rule_8c2f09")}
           </Button>
         </div>
         <div className="space-y-3">
-          <h3 className="text-sm font-medium">Stop and target defaults</h3>
+          <h3 className="text-sm font-medium">
+            {t("components_journal_default_settings_stop_and_target_defaults_b456db")}
+          </h3>
           <p className="text-xs text-muted-foreground">
-            Distances from weighted entry, adjusted for long or short direction. Applied only when a
-            new trade is first created. The first matching rule wins.
+            {t("components_journal_default_settings_distances_from_weighted_entry_ad_47b2db")}
           </p>
           {draft.riskRules.map((r, i) => {
             const update = (next: FeeRule | RiskRule) =>
@@ -178,7 +190,7 @@ export function JournalDefaultSettings() {
               <div key={r.id} className="space-y-2 rounded-md border p-3">
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {matchFields(r, update)}
-                  <Field label="Stop distance">
+                  <Field label={t("components_journal_default_settings_stop_distance_68a529")}>
                     <MonetaryField sensitive={r.mode === "price"}>
                       <input
                         type="number"
@@ -190,7 +202,7 @@ export function JournalDefaultSettings() {
                       />
                     </MonetaryField>
                   </Field>
-                  <Field label="Target distance">
+                  <Field label={t("components_journal_default_settings_target_distance_38cb9e")}>
                     <MonetaryField sensitive={r.mode === "price"}>
                       <input
                         type="number"
@@ -202,14 +214,18 @@ export function JournalDefaultSettings() {
                       />
                     </MonetaryField>
                   </Field>
-                  <Field label="Distance unit">
+                  <Field label={t("components_journal_default_settings_distance_unit_30b76e")}>
                     <OptionSelect
                       className={fieldClass}
                       value={r.mode}
                       onValueChange={(next) => update({ ...r, mode: next as RiskRule["mode"] })}
                     >
-                      <option value="price">Price points</option>
-                      <option value="percent">% of entry price</option>
+                      <option value="price">
+                        {t("components_journal_default_settings_price_points_a92abd")}
+                      </option>
+                      <option value="percent">
+                        {t("components_journal_default_settings_of_entry_price_50e1e1")}
+                      </option>
                     </OptionSelect>
                   </Field>
                 </div>
@@ -220,7 +236,7 @@ export function JournalDefaultSettings() {
                     setDraft({ ...draft, riskRules: draft.riskRules.filter((x) => x.id !== r.id) })
                   }
                 >
-                  Remove risk rule
+                  {t("components_journal_default_settings_remove_risk_rule_0de7c3")}
                 </Button>
               </div>
             );
@@ -245,7 +261,7 @@ export function JournalDefaultSettings() {
               })
             }
           >
-            Add risk rule
+            {t("components_journal_default_settings_add_risk_rule_89c463")}
           </Button>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -253,15 +269,19 @@ export function JournalDefaultSettings() {
             disabled={!data}
             onClick={async () => {
               try {
-                setStatus("Saving…");
+                setStatus(t("components_journal_default_settings_saving_56a228"));
                 await postJson("/api/workspace/defaults", draft);
-                setStatus("Defaults saved");
+                setStatus(t("components_journal_default_settings_defaults_saved_f091c6"));
               } catch (e) {
-                setStatus(e instanceof Error ? e.message : "Save failed.");
+                setStatus(
+                  e instanceof Error
+                    ? e.message
+                    : t("components_journal_default_settings_save_failed_aefc63"),
+                );
               }
             }}
           >
-            Save defaults
+            {t("components_journal_default_settings_save_defaults_90df04")}
           </Button>
           <span role="status" className="text-xs">
             {status}

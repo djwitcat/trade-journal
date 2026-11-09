@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import { useVizTokens } from "./tokens";
 
@@ -16,6 +17,7 @@ export function Gauge({
   size?: number;
 }) {
   const t = useVizTokens();
+  const translate = useTranslations("extracted");
   const radius = size / 2 - 6;
   const circumference = Math.PI * radius;
   const ratio = value === null ? 0 : Math.min(Math.max(value, 0), 1);
@@ -24,7 +26,10 @@ export function Gauge({
     <div
       className="journal-gauge flex min-w-0 flex-col items-center"
       role="img"
-      aria-label={`${label}: ${value === null ? "no data" : `${(ratio * 100).toFixed(1)}%`}`}
+      aria-label={translate("gauge_aria", {
+        label,
+        value: value === null ? translate("gauge_no_data") : `${(ratio * 100).toFixed(1)}%`,
+      })}
     >
       <svg width={size} height={size / 2 + 8} viewBox={`0 0 ${size} ${size / 2 + 8}`}>
         <path

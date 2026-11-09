@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useState, type ReactNode } from "react";
@@ -16,15 +17,20 @@ import { usePrivacy } from "./privacy";
 const CalendarDailyChart = dynamic(
   () => import("./charts/calendar-daily-chart").then((module) => module.CalendarDailyChart),
   {
-    loading: () => (
-      <div
-        role="status"
-        aria-label="Loading daily performance chart"
-        className="h-60 rounded-lg bg-muted/20"
-      />
-    ),
+    loading: () => <CalendarChartLoading />,
   },
 );
+
+function CalendarChartLoading() {
+  const t = useTranslations("extracted");
+  return (
+    <div
+      role="status"
+      aria-label={t("components_calendar_insights_loading_daily_performance_chart")}
+      className="h-60 rounded-lg bg-muted/20"
+    />
+  );
+}
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -59,6 +65,7 @@ function Metric({
 }
 
 export function CalendarPerformance({ data, query }: { data: CalendarResponse; query: string }) {
+  const t = useTranslations("extracted");
   const { insights: i, scope, timeZone, currencies } = data;
   const currency = currencies[0] ?? "USD";
   const mixed = currencies.length > 1;
@@ -96,10 +103,10 @@ export function CalendarPerformance({ data, query }: { data: CalendarResponse; q
       <div className="flex flex-wrap items-end justify-between gap-2 pt-3">
         <div>
           <h2 id="calendar-insights-heading" className="text-base font-semibold tracking-tight">
-            Performance insights
+            {t("components_calendar_insights_performance_insights_3be82a")}
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Visible month × active filters · Closed trades, after fees · {timeZone}
+            {t("components_calendar_insights_visible_month_active_filters_clo_33c6b1")} {timeZone}
           </p>
         </div>
         {i.trades > 0 && (
@@ -107,7 +114,8 @@ export function CalendarPerformance({ data, query }: { data: CalendarResponse; q
             href={href()}
             className="inline-flex items-center gap-1 rounded text-xs text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
           >
-            View matching trades <ArrowUpRight aria-hidden="true" className="size-3.5" />
+            {t("components_calendar_insights_view_matching_trades_9aa190")}{" "}
+            <ArrowUpRight aria-hidden="true" className="size-3.5" />
           </Link>
         )}
       </div>
@@ -115,10 +123,11 @@ export function CalendarPerformance({ data, query }: { data: CalendarResponse; q
         <Card>
           <CardContent className="flex flex-col items-center gap-2 py-10 text-center">
             <CalendarDays aria-hidden="true" className="mb-1 size-6 text-muted-foreground" />
-            <h3 className="text-sm font-medium">No closed trades in this view</h3>
+            <h3 className="text-sm font-medium">
+              {t("components_calendar_insights_no_closed_trades_in_this_view_bc6ab9")}
+            </h3>
             <p className="max-w-md text-sm text-muted-foreground">
-              Choose another month or adjust your account and filters. Open positions and days
-              without trades aren’t included in performance insights.
+              {t("components_calendar_insights_choose_another_month_or_adjust_y_fdcf19")}
             </p>
           </CardContent>
         </Card>
@@ -129,31 +138,34 @@ export function CalendarPerformance({ data, query }: { data: CalendarResponse; q
               role="status"
               className="rounded-lg border bg-muted/40 px-4 py-3 text-sm text-muted-foreground"
             >
-              These trades use {currencies.join(", ")}. Select accounts with one currency to compare
-              monetary performance; no exchange-rate conversion is applied.
+              {t("components_calendar_insights_these_trades_use_307772")} {currencies.join(", ")}
+              {t("components_calendar_insights_select_accounts_with_one_currenc_599c65")}
             </p>
           )}
           <div className="grid gap-3 min-[420px]:grid-cols-2 xl:grid-cols-4">
             <Metric
-              title="Net P&L"
+              title={t("components_calendar_insights_net_p_l_152aa9")}
               value={money(i.netPnl)}
-              detail={`${i.tradingDays} trading day${i.tradingDays === 1 ? "" : "s"}${mixed ? "" : ` · ${currency}`}`}
-              hint="Sum of net P&L for closed trades in this month and filter selection. Includes fees. No currency conversion."
+              detail={t("calendar_trading_days", {
+                count: i.tradingDays,
+                currency: mixed ? "" : ` · ${currency}`,
+              })}
+              hint={t("components_calendar_insights_sum_of_net_p_l_for_closed_trades_5f47e7")}
             />
             <Metric
-              title="Average daily P&L"
+              title={t("components_calendar_insights_average_daily_p_l_5be448")}
               value={money(i.avgDailyPnl)}
-              detail="Per day with closed trades"
-              hint="Net P&L divided by trading days. Days without closed trades are excluded; break-even trading days are included."
+              detail={t("components_calendar_insights_per_day_with_closed_trades_a2b525")}
+              hint={t("components_calendar_insights_net_p_l_divided_by_trading_days__2c4e64")}
             />
             <Metric
-              title="Trade win rate"
+              title={t("components_calendar_insights_trade_win_rate_6d44e6")}
               value={fmtPercent(i.winRate)}
               detail={`${i.wins} wins · ${i.losses} losses · ${i.breakevens} break-even`}
-              hint="Winning closed trades divided by all closed trades, including break-even trades. Uses your journal's configured break-even rule."
+              hint={t("components_calendar_insights_winning_closed_trades_divided_by_d2e7f8")}
             />
             <Metric
-              title="Total closed trades"
+              title={t("components_calendar_insights_total_closed_trades_fa6f9e")}
               value={
                 <Link
                   className="rounded outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
@@ -162,8 +174,8 @@ export function CalendarPerformance({ data, query }: { data: CalendarResponse; q
                   {i.trades}
                 </Link>
               }
-              detail="Round-trip trades, not executions"
-              hint="Counts completed trades whose closing day falls in the visible month and selected date range, with all other filters applied."
+              detail={t("components_calendar_insights_round_trip_trades_not_executions_3f951e")}
+              hint={t("components_calendar_insights_counts_completed_trades_whose_cl_ef05f3")}
             />
           </div>
           {!mixed && (
@@ -171,58 +183,74 @@ export function CalendarPerformance({ data, query }: { data: CalendarResponse; q
               <div className="grid gap-3 md:grid-cols-3">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Best & worst day</CardTitle>
+                    <CardTitle>{t("components_calendar_insights_best_worst_day_3f339c")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-1">
-                      <span className="text-xs text-muted-foreground">Best day</span>
+                      <span className="text-xs text-muted-foreground">
+                        {t("components_calendar_insights_best_day_d62946")}
+                      </span>
                       {dayLink(i.bestDay)}
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-1">
-                      <span className="text-xs text-muted-foreground">Worst day</span>
+                      <span className="text-xs text-muted-foreground">
+                        {t("components_calendar_insights_worst_day_f54d67")}
+                      </span>
                       {dayLink(i.worstDay)}
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {i.tradingDays === 1
-                        ? "One trading day; both extrema are the same."
-                        : "Highest and lowest daily net P&L."}
+                        ? t("components_calendar_insights_one_trading_day_both_extrema_are_4aba1a")
+                        : t("components_calendar_insights_highest_and_lowest_daily_net_p_l_e98f5f")}
                     </p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardHeader>
-                    <CardTitle>Average green & red day</CardTitle>
+                    <CardTitle>
+                      {t("components_calendar_insights_average_green_red_day_bf3348")}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex items-center justify-between gap-2 text-sm">
                       <span className="text-xs text-muted-foreground">
-                        {i.greenDays} profitable days
+                        {i.greenDays} {t("components_calendar_insights_profitable_days_01d490")}
                       </span>
                       {money(i.avgGreenDay)}
                     </div>
                     <div className="flex items-center justify-between gap-2 text-sm">
-                      <span className="text-xs text-muted-foreground">{i.redDays} losing days</span>
+                      <span className="text-xs text-muted-foreground">
+                        {i.redDays} {t("components_calendar_insights_losing_days_eb0caf")}
+                      </span>
                       {money(i.avgRedDay)}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Each average uses only its own group.
+                      {t("components_calendar_insights_each_average_uses_only_its_own_g_c5237d")}
                     </p>
                   </CardContent>
                 </Card>
                 <Metric
-                  title="Day consistency"
+                  title={t("components_calendar_insights_day_consistency_d23b2f")}
                   value={fmtPercent(i.profitableDayRate)}
-                  detail={`${i.greenDays} positive · ${i.redDays} negative · ${i.flatDays} flat days`}
-                  hint="Share of trading days with strictly positive net P&L. This is a profitable-day rate, not a risk-adjusted score or a prediction. Flat days stay in the denominator."
+                  detail={t("calendar_day_consistency", {
+                    positive: i.greenDays,
+                    negative: i.redDays,
+                    flat: i.flatDays,
+                  })}
+                  hint={t("components_calendar_insights_share_of_trading_days_with_stric_3809b5")}
                 />
               </div>
               <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
                 <Card>
                   <CardHeader>
-                    <h3 className="text-sm font-medium">Daily performance</h3>
+                    <h3 className="text-sm font-medium">
+                      {t("components_calendar_insights_daily_performance_85ae91")}
+                    </h3>
                     <p className="text-xs text-muted-foreground">
-                      Net P&L by closing day · {currency}
-                      {i.tradingDays >= 8 ? " · Dashed line: 5-trading-day average" : ""}
+                      {t("components_calendar_insights_net_p_l_by_closing_day_ef3343")} {currency}
+                      {i.tradingDays >= 8
+                        ? t("components_calendar_insights_dashed_line_5_trading_day_averag_2aeccb")
+                        : ""}
                     </p>
                   </CardHeader>
                   <CardContent>
@@ -234,35 +262,42 @@ export function CalendarPerformance({ data, query }: { data: CalendarResponse; q
                       />
                     ) : (
                       <div className="flex min-h-40 flex-col items-center justify-center gap-2 rounded-lg bg-muted/30 p-5 text-center">
-                        <span className="text-sm font-medium">A trend needs more than one day</span>
-                        <span className="text-xs text-muted-foreground">
-                          {dateLabel(i.days[0]!.date)} · {money(i.netPnl)} · {i.trades} closed
-                          trades
+                        <span className="text-sm font-medium">
+                          {t("components_calendar_insights_a_trend_needs_more_than_one_day_5d166a")}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          Explore an earlier month with more trading history.
+                          {dateLabel(i.days[0]!.date)} · {money(i.netPnl)} · {i.trades}{" "}
+                          {t("components_calendar_insights_closed_trades_a70028")}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {t(
+                            "components_calendar_insights_explore_an_earlier_month_with_mo_fe05b9",
+                          )}
                         </span>
                       </div>
                     )}
                     <details className="mt-3 border-t pt-3">
                       <summary className="cursor-pointer rounded text-xs text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring">
-                        Daily values & trade links ({i.tradingDays})
+                        {t("components_calendar_insights_daily_values_trade_links_a110e1")}
+                        {i.tradingDays})
                       </summary>
                       <div className="mt-2 max-h-60 overflow-auto">
                         <table className="w-full text-left text-xs">
                           <caption className="sr-only">
-                            Daily results for the current month and filters
+                            {t(
+                              "components_calendar_insights_daily_results_for_the_current_mo_c5b3d6",
+                            )}
                           </caption>
                           <thead className="sticky top-0 bg-card text-muted-foreground">
                             <tr>
                               <th scope="col" className="py-2 font-medium">
-                                Closing day
+                                {t("components_calendar_insights_closing_day_93a93c")}
                               </th>
                               <th scope="col" className="text-right font-medium">
-                                Trades
+                                {t("components_calendar_insights_trades_597b10")}
                               </th>
                               <th scope="col" className="text-right font-medium">
-                                Net P&L
+                                {t("components_calendar_insights_net_p_l_152aa9")}
                               </th>
                             </tr>
                           </thead>
@@ -289,15 +324,18 @@ export function CalendarPerformance({ data, query }: { data: CalendarResponse; q
                 </Card>
                 <Card>
                   <CardHeader>
-                    <h3 className="text-sm font-medium">Performance by weekday</h3>
+                    <h3 className="text-sm font-medium">
+                      {t("components_calendar_insights_performance_by_weekday_92895e")}
+                    </h3>
                     <p className="text-xs text-muted-foreground">
-                      Closing-day net P&L · {currency} · Select a row
+                      {t("components_calendar_insights_closing_day_net_p_l_8c4d84")} {currency}{" "}
+                      {t("components_calendar_insights_select_a_row_435aac")}
                     </p>
                   </CardHeader>
                   <CardContent>
                     <div className="mb-3 rounded-lg bg-muted/40 px-3 py-2">
                       <div className="text-[11px] text-muted-foreground">
-                        Most profitable weekday
+                        {t("components_calendar_insights_most_profitable_weekday_2b6475")}
                       </div>
                       <div className="mt-0.5 flex flex-wrap justify-between gap-1 text-sm font-medium">
                         {i.mostProfitableWeekday ? (
@@ -306,7 +344,9 @@ export function CalendarPerformance({ data, query }: { data: CalendarResponse; q
                             {money(i.mostProfitableWeekday.netPnl)}
                           </>
                         ) : (
-                          <span className="text-muted-foreground">No profitable weekday yet</span>
+                          <span className="text-muted-foreground">
+                            {t("components_calendar_insights_no_profitable_weekday_yet_f7126f")}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -315,14 +355,24 @@ export function CalendarPerformance({ data, query }: { data: CalendarResponse; q
                         <HoverHint
                           key={day.index}
                           heading={day.label}
-                          content={`${day.days.length} trading days · ${day.trades} closed trades · ${privateMode ? "P&L hidden" : fmtMoney(day.netPnl, currency)}`}
+                          content={t("calendar_weekday_hint", {
+                            days: day.days.length,
+                            trades: day.trades,
+                            amount: privateMode
+                              ? t("calendar_pnl_hidden")
+                              : fmtMoney(day.netPnl, currency),
+                          })}
                         >
                           <button
                             type="button"
                             disabled={!day.trades}
                             onClick={() => setWeekday(weekday === day.index ? null : day.index)}
                             aria-pressed={weekday === day.index}
-                            aria-label={`${day.label}: ${day.trades} trades${privateMode ? "" : `, ${fmtMoney(day.netPnl, currency)}`}. Inspect closing days.`}
+                            aria-label={t("calendar_inspect_weekday", {
+                              day: day.label,
+                              trades: day.trades,
+                              amount: privateMode ? "" : `, ${fmtMoney(day.netPnl, currency)}`,
+                            })}
                             className={cn(
                               "grid w-full grid-cols-[2rem_minmax(0,1fr)_5.75rem] items-center gap-2 rounded-md px-2 py-2 text-left text-xs outline-none hover:bg-accent/60 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40 disabled:hover:bg-transparent",
                               weekday === day.index && "bg-accent",
@@ -362,8 +412,9 @@ export function CalendarPerformance({ data, query }: { data: CalendarResponse; q
                     {selected && (
                       <div className="mt-3 border-t pt-3" aria-live="polite">
                         <p className="mb-2 text-xs font-medium">
-                          {selected.label} · {selected.trades} trades across {selected.days.length}{" "}
-                          days
+                          {selected.label} · {selected.trades}{" "}
+                          {t("components_calendar_insights_trades_across_c580cb")}{" "}
+                          {selected.days.length} {t("components_calendar_insights_days_5548ae")}
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {selected.days.map((day) => (
@@ -373,7 +424,9 @@ export function CalendarPerformance({ data, query }: { data: CalendarResponse; q
                               className="rounded-md border px-2 py-1.5 text-xs outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
                             >
                               {dateLabel(day.date)}{" "}
-                              <span className="text-muted-foreground">· {day.trades} trades</span>
+                              <span className="text-muted-foreground">
+                                · {day.trades} {t("components_calendar_insights_trades_cf7b32")}
+                              </span>
                             </Link>
                           ))}
                         </div>
@@ -384,8 +437,10 @@ export function CalendarPerformance({ data, query }: { data: CalendarResponse; q
               </div>
               {i.tradingDays < 5 && (
                 <p className="px-1 text-xs text-muted-foreground">
-                  Small sample: {i.tradingDays} trading day{i.tradingDays === 1 ? "" : "s"}. Weekday
-                  results and consistency describe this selection only.
+                  {t("components_calendar_insights_small_sample_611d0c")} {i.tradingDays}{" "}
+                  {t("components_calendar_insights_trading_day_e139d9")}
+                  {i.tradingDays === 1 ? "" : t("components_calendar_insights_s_a0f149")}
+                  {t("components_calendar_insights_weekday_results_and_consistency__924129")}
                 </p>
               )}
             </>

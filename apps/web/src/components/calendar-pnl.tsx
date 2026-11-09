@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { HoverHint } from "./ui/tooltip";
 
 import Link from "next/link";
@@ -42,6 +43,7 @@ export function CalendarPnl({
   monetary?: boolean;
   runningPnl?: Record<string, CalendarPnlPoint[]>;
 }) {
+  const t = useTranslations("extracted");
   const maxAbs = Math.max(
     1,
     ...calendar.weeks.flatMap((week) => week.days.map((day) => Math.abs(day?.netPnl ?? 0))),
@@ -55,7 +57,7 @@ export function CalendarPnl({
           </div>
         ))}
         <div className="journal-calendar-week-heading px-1 pb-1 text-right text-muted-foreground">
-          Week
+          {t("components_calendar_pnl_week_f82be6")}
         </div>
         {calendar.weeks.map((week, weekIndex) => (
           <CalendarWeekRow
@@ -70,14 +72,21 @@ export function CalendarPnl({
       </div>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs sm:text-sm">
         <span className="text-muted-foreground">
-          {calendar.tradingDays} trading days {monetary && <>· {calendar.winningDays} green</>}
+          {calendar.tradingDays} {t("components_calendar_pnl_trading_days_ff1460")}{" "}
+          {monetary && (
+            <>
+              · {calendar.winningDays} {t("components_calendar_pnl_green_bc74f4")}
+            </>
+          )}
         </span>
         <span>
-          Month:{" "}
+          {t("components_calendar_pnl_month_bb80ce")}{" "}
           {monetary ? (
             <Pnl value={calendar.monthNetPnl} currency={currency} className="font-semibold" />
           ) : (
-            <span className="text-muted-foreground">Multiple currencies</span>
+            <span className="text-muted-foreground">
+              {t("components_calendar_pnl_multiple_currencies_7c7266")}
+            </span>
           )}
         </span>
       </div>
@@ -98,6 +107,7 @@ function CalendarWeekRow({
   monetary: boolean;
   runningPnl?: Record<string, CalendarPnlPoint[]>;
 }) {
+  const t = useTranslations("extracted");
   const search = useSearchParams();
   const privacy = usePrivacy();
   return (
@@ -127,14 +137,29 @@ function CalendarWeekRow({
                   monetary={monetary}
                 />
               ) : (
-                `${!monetary ? "Multiple currencies" : privacy ? "P&L hidden" : fmtMoney(day.netPnl, currency)} · ${day.trades} trades`
+                t("calendar_day_summary", {
+                  amount: !monetary
+                    ? t("calendar_multiple_currencies")
+                    : privacy
+                      ? t("calendar_pnl_hidden")
+                      : fmtMoney(day.netPnl, currency),
+                  count: day.trades,
+                })
               )
             }
           >
             <Link
               key={day.date}
               href={`/journal/${day.date}?${search}`}
-              aria-label={`${day.date}, ${!monetary ? "Multiple currencies" : privacy ? "P&L hidden" : fmtMoney(day.netPnl, currency)}, ${day.trades} trades`}
+              aria-label={t("calendar_day_aria", {
+                date: day.date,
+                amount: !monetary
+                  ? t("calendar_multiple_currencies")
+                  : privacy
+                    ? t("calendar_pnl_hidden")
+                    : fmtMoney(day.netPnl, currency),
+                count: day.trades,
+              })}
               className={cn(
                 "journal-calendar-day journal-calendar-day-link min-w-0 rounded-md border",
                 !traded && "border-transparent bg-muted/30",
@@ -172,7 +197,8 @@ function CalendarWeekRow({
                     )}
                   </div>
                   <div className="journal-calendar-trades text-muted-foreground">
-                    {day.trades} trade{day.trades === 1 ? "" : "s"}
+                    {day.trades} {t("components_calendar_pnl_trade_6f3eb7")}
+                    {day.trades === 1 ? "" : "s"}
                   </div>
                 </>
               )}
@@ -181,13 +207,17 @@ function CalendarWeekRow({
         );
       })}
       <div className="journal-calendar-week flex rounded-md bg-muted/40 p-1.5">
-        <span className="journal-calendar-week-label text-muted-foreground">Week total</span>
+        <span className="journal-calendar-week-label text-muted-foreground">
+          {t("components_calendar_pnl_week_total_579cc4")}
+        </span>
         {week.weekTrades > 0 ? (
           <>
             {monetary && (
               <Pnl value={week.weekNetPnl} currency={currency} className="font-medium" />
             )}
-            <span className="text-muted-foreground">{week.weekTrades} trades</span>
+            <span className="text-muted-foreground">
+              {week.weekTrades} {t("components_calendar_pnl_trades_cf7b32")}
+            </span>
           </>
         ) : (
           <span className="text-muted-foreground">–</span>

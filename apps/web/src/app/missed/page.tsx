@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { OptionSelect } from "@/components/ui/option-select";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -45,6 +46,8 @@ export default function MissedPage() {
   );
 }
 function Missed() {
+  const t = useTranslations("extracted");
+  const translate = useTranslations("extracted");
   const { data, error, refresh } = useApi<{ trades: Missed[] }>("/api/workspace/missed"),
     { data: books } = useApi<{ playbooks: { id: string; name: string }[] }>("/api/playbooks");
   const [open, setOpen] = useState(false),
@@ -103,23 +106,22 @@ function Missed() {
   return (
     <div>
       <FilterBar
-        title="Missed trades"
+        title={translate("app_missed_page_missed_trades_63202b")}
         actions={
           <Button size="sm" onClick={() => edit()}>
-            Log opportunity
+            {translate("app_missed_page_log_opportunity_0bd9bf")}
           </Button>
         }
       />
       <div className="space-y-4 p-4">
         <p className="text-sm text-muted-foreground">
-          Record setups you watched but did not take. These observations never enter your trade
-          count, P&L, or win rate.
+          {translate("app_missed_page_record_setups_you_watched_but_di_cc3abc")}
         </p>
         <div className="flex flex-wrap items-center gap-4">
           <input
-            aria-label="Search missed trades"
+            aria-label={translate("app_missed_page_search_missed_trades_c603d6")}
             className={`${fieldClass} max-w-sm`}
-            placeholder="Search symbol or notes"
+            placeholder={translate("app_missed_page_search_symbol_or_notes_2af9c5")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -128,7 +130,7 @@ function Missed() {
               checked={archived}
               onCheckedChange={(checked) => setArchived(checked === true)}
             />
-            Show archived
+            {translate("app_missed_page_show_archived_5084ee")}
           </label>
         </div>
         {(error || failure) && (
@@ -146,7 +148,7 @@ function Missed() {
                   </CardTitle>
                   <div className="flex gap-2">
                     <Button variant="ghost" size="sm" onClick={() => edit(t)}>
-                      Edit
+                      {translate("app_missed_page_edit_530164")}
                     </Button>
                     <Button
                       variant="ghost"
@@ -164,21 +166,24 @@ function Missed() {
                         }
                       }}
                     >
-                      {t.archivedAt ? "Restore" : "Archive"}
+                      {t.archivedAt
+                        ? translate("app_missed_page_restore_3cbe6d")
+                        : translate("app_missed_page_archive_2621c6")}
                     </Button>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {new Date(t.observedAt).toLocaleString()} ·{" "}
-                  {books?.playbooks.find((b) => b.id === t.playbookId)?.name ?? "No strategy"}
+                  {books?.playbooks.find((b) => b.id === t.playbookId)?.name ??
+                    translate("app_missed_page_no_strategy_91fdad")}
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex flex-wrap gap-5 text-sm">
                   {[
-                    ["Entry", t.entry],
-                    ["Stop", t.stop],
-                    ["Target", t.target],
+                    [translate("missed_entry"), t.entry],
+                    [translate("missed_stop"), t.stop],
+                    [translate("missed_target"), t.target],
                   ].map(([label, value]) => (
                     <span key={label}>
                       <span className="text-muted-foreground">{label}: </span>
@@ -186,15 +191,19 @@ function Missed() {
                     </span>
                   ))}
                 </div>
-                <Markdown>{t.notes || "No review yet."}</Markdown>
+                <Markdown>{t.notes || translate("missed_no_review")}</Markdown>
                 <ReviewExport
                   containsFinancialData
                   document={{
-                    title: `Missed opportunity · ${t.symbol}`,
+                    title: translate("missed_export_title", { symbol: t.symbol }),
                     subtitle: `${t.direction} · ${t.observedAt}`,
                     lines: [
-                      "Observation only: no executed trade or actual P&L.",
-                      `Planned entry: ${t.entry ?? "-"} | Stop: ${t.stop ?? "-"} | Target: ${t.target ?? "-"}`,
+                      translate("missed_observation_only"),
+                      translate("missed_export_plan", {
+                        entry: t.entry ?? "-",
+                        stop: t.stop ?? "-",
+                        target: t.target ?? "-",
+                      }),
                       "",
                       t.notes,
                     ],
@@ -207,34 +216,44 @@ function Missed() {
         </div>
         {data && !rows.length && (
           <p className="py-16 text-center text-sm text-muted-foreground">
-            No {archived ? "archived " : ""}opportunities here yet.
+            {translate("app_missed_page_no_816c52")}{" "}
+            {archived ? t("app_missed_page_archived_48f0f9") : ""}
+            {translate("app_missed_page_opportunities_here_yet_a9af79")}
           </p>
         )}
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
             <DialogHeader>
-              <DialogTitle>{editing ? "Edit opportunity" : "Log a missed opportunity"}</DialogTitle>
+              <DialogTitle>
+                {editing
+                  ? t("app_missed_page_edit_opportunity_d255c9")
+                  : t("app_missed_page_log_a_missed_opportunity_7d7408")}
+              </DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {formField("symbol", "Symbol")}
-              <Field label="Direction">
+              {formField("symbol", t("app_missed_page_symbol_3f84ef"))}
+              <Field label={t("app_missed_page_direction_fd8e45")}>
                 <OptionSelect
                   className={fieldClass}
                   value={draft.direction}
                   onValueChange={(next) => setDraft({ ...draft, direction: next })}
                 >
-                  <option value="long">Long</option>
-                  <option value="short">Short</option>
+                  <option value="long">{translate("app_missed_page_long_11eda6")}</option>
+                  <option value="short">{translate("app_missed_page_short_0fe7d8")}</option>
                 </OptionSelect>
               </Field>
-              {formField("observedAt", "Observed at (device time)", "datetime-local")}
-              <Field label="Strategy">
+              {formField(
+                "observedAt",
+                t("app_missed_page_observed_at_device_time_29ef2e"),
+                "datetime-local",
+              )}
+              <Field label={t("app_missed_page_strategy_69fb26")}>
                 <OptionSelect
                   className={fieldClass}
                   value={draft.playbookId}
                   onValueChange={(next) => setDraft({ ...draft, playbookId: next })}
                 >
-                  <option value="">No strategy</option>
+                  <option value="">{translate("app_missed_page_no_strategy_91fdad")}</option>
                   {books?.playbooks.map((b) => (
                     <option key={b.id} value={b.id}>
                       {b.name}
@@ -244,15 +263,15 @@ function Missed() {
               </Field>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {formField("entry", "Planned entry", "number")}
-              {formField("stop", "Planned stop", "number")}
-              {formField("target", "Planned target", "number")}
+              {formField("entry", t("app_missed_page_planned_entry_f07fa5"), "number")}
+              {formField("stop", t("app_missed_page_planned_stop_b5d4c4"), "number")}
+              {formField("target", t("app_missed_page_planned_target_537ade"), "number")}
             </div>
             <RichEditor
               defaultMode="edit"
               value={draft.notes}
               onChange={(notes) => setDraft({ ...draft, notes })}
-              placeholder="Why did you miss it? What will you do differently?"
+              placeholder={translate("app_missed_page_why_did_you_miss_it_what_will_yo_6da986")}
             />
             {failure && (
               <p role="alert" className="text-xs text-destructive">
@@ -276,13 +295,13 @@ function Missed() {
                   refresh();
                   setFailure("");
                 } catch (e) {
-                  setFailure(e instanceof Error ? e.message : "Could not save.");
+                  setFailure(e instanceof Error ? e.message : translate("common_save_failed"));
                 } finally {
                   setBusy(false);
                 }
               }}
             >
-              Save opportunity
+              {translate("app_missed_page_save_opportunity_3a926b")}
             </Button>
           </DialogContent>
         </Dialog>

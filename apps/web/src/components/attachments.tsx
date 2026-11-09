@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { HoverHint } from "./ui/tooltip";
 import { useRef, useState } from "react";
 import { Paperclip, Trash2 } from "lucide-react";
@@ -11,6 +12,7 @@ export function Attachments({
   type: "trade" | "day" | "note" | "missed" | "prop-account" | "prop-entry";
   id: string;
 }) {
+  const t = useTranslations("extracted");
   const { data, error, refresh } = useApi<{
     attachments: { id: string; name: string; mime: string; size: number }[];
   }>(`/api/attachments?type=${type}&id=${encodeURIComponent(id)}`);
@@ -28,13 +30,17 @@ export function Attachments({
           onClick={() => input.current?.click()}
         >
           <Paperclip />
-          {busy ? "Uploading…" : "Add attachment"}
+          {busy
+            ? t("components_attachments_uploading_d921a7")
+            : t("components_attachments_add_attachment_8577ca")}
         </Button>
-        <span className="text-xs text-muted-foreground">Images or PDF · up to 8 MB each</span>
+        <span className="text-xs text-muted-foreground">
+          {t("components_attachments_images_or_pdf_up_to_8_mb_each_50e6fd")}
+        </span>
       </div>
       <input
         ref={input}
-        aria-label="Upload attachment"
+        aria-label={t("components_attachments_upload_attachment_09cc3f")}
         type="file"
         accept="image/png,image/jpeg,image/webp,application/pdf"
         className="hidden"
@@ -54,7 +60,9 @@ export function Attachments({
               if (!r.ok) throw new Error(result.error);
             }
           } catch (err) {
-            setFailure(err instanceof Error ? err.message : "Upload failed.");
+            setFailure(
+              err instanceof Error ? err.message : t("components_attachments_upload_failed_144deb"),
+            );
           } finally {
             setBusy(false);
             if (input.current) input.current.value = "";
@@ -88,15 +96,17 @@ export function Attachments({
               </a>
             </HoverHint>
             <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
-              <span>{Math.round(a.size / 1024)} KB</span>
+              <span>
+                {Math.round(a.size / 1024)} {t("components_attachments_kb_315b39")}
+              </span>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6"
-                aria-label={`Remove ${a.name}`}
+                aria-label={t("attachment_remove_aria", { name: a.name })}
                 onClick={async () => {
-                  if (!confirm(`Remove ${a.name}?`)) return;
+                  if (!confirm(t("attachment_confirm_remove", { name: a.name }))) return;
                   try {
                     await postJson(`/api/attachments/${a.id}`, undefined, "DELETE");
                     refresh();

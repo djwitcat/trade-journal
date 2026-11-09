@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useApi, postJson } from "@/lib/use-api";
 import type { MarketConnection } from "@/lib/market-data";
@@ -12,26 +13,29 @@ import { providerInfo } from "@/lib/market-providers";
 import { MarketCsvSettings } from "./market-csv-settings";
 
 export function MarketDataSettings() {
+  const t = useTranslations("extracted");
   const { data, error, refresh } = useApi<{ connections: MarketConnection[] }>(
     "/api/market-data/connections",
   );
   return (
     <Card id="market-data" className="scroll-mt-24">
       <CardHeader>
-        <CardTitle>Market data</CardTitle>
+        <CardTitle>{t("components_market_data_settings_market_data_bc7eaf")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Connect historical prices for estimated MAE/MFE and candle replay on closed trades. Vela
-          renders the charts. No data source is enabled or selected by default. Choose a connection
-          or upload your own candles. Market data connections are separate from broker sync and AI.
+          {t("components_market_data_settings_connect_historical_prices_for_es_40287c")}
         </p>
         {error && (
           <p role="alert" className="text-sm text-destructive">
             {error}
           </p>
         )}
-        {!data && !error && <p className="text-sm text-muted-foreground">Loading connections…</p>}
+        {!data && !error && (
+          <p className="text-sm text-muted-foreground">
+            {t("components_market_data_settings_loading_connections_e2e03e")}
+          </p>
+        )}
         {data?.connections
           .filter((connection) => connection.id !== "market-csv")
           .map((connection) => (
@@ -50,6 +54,7 @@ function Connection({
   connection: MarketConnection;
   refresh: () => void;
 }) {
+  const t = useTranslations("extracted");
   const info = providerInfo(connection.id)!;
   const defaults = () =>
     Object.fromEntries(info.fields.map((field) => [field.key, field.defaultValue ?? ""]));
@@ -73,17 +78,19 @@ function Connection({
       setMessage(
         action === "test"
           ? publicSource
-            ? "Public endpoint reachable. No API key or paid data plan is required. Candle availability depends on the pair, date range and public API limits."
-            : "Connection verified. Instrument coverage depends on your provider access."
+            ? t("components_market_data_settings_public_reachable")
+            : t("components_market_data_settings_connection_verified")
           : action === "save"
-            ? "Credentials saved. Test the connection to verify access."
+            ? t("components_market_data_settings_credentials_saved")
             : action === "enable"
-              ? "Public market data enabled."
-              : "Connection removed.",
+              ? t("components_market_data_settings_public_enabled")
+              : t("components_market_data_settings_connection_removed"),
       );
       refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Connection update failed.");
+      setError(
+        cause instanceof Error ? cause.message : t("components_market_data_settings_update_failed"),
+      );
     } finally {
       setBusy(false);
     }
@@ -91,34 +98,37 @@ function Connection({
   return (
     <div className="space-y-3 rounded-lg border p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-sm font-medium">{connection.name}</h3>
+        <h3 className="text-sm font-medium">{t(`market_provider_${connection.id}_name`)}</h3>
         <span className="text-xs text-muted-foreground">
           {managed
-            ? "Managed by server environment"
+            ? t("components_market_data_settings_environment_managed")
             : connection.configured
               ? publicSource
-                ? "Enabled · no key required"
-                : "Credentials saved"
-              : "Not connected"}
+                ? t("components_market_data_settings_enabled_no_key")
+                : t("components_market_data_settings_credentials_saved_short")
+              : t("components_market_data_settings_not_connected")}
         </span>
       </div>
-      <p className="text-xs text-muted-foreground">{info.description}</p>
+      <p className="text-xs text-muted-foreground">
+        {t(`market_provider_${connection.id}_description`)}
+      </p>
       {!publicSource && (
         <p className="text-xs text-muted-foreground">
-          Credentials are encrypted locally and used only by the server for market data. Saved
-          secrets are never returned to the browser or included in journal exports.
+          {t("components_market_data_settings_credentials_are_encrypted_locall_6e4488")}
         </p>
       )}
       {managed && !connection.configured && (
         <p className="text-xs text-destructive">
-          Complete all required fields in the server environment.
+          {t("components_market_data_settings_complete_all_required_fields_in__e28ba7")}
         </p>
       )}
       {!managed &&
         !publicSource &&
         info.fields.map((field) => (
           <div key={field.key} className="space-y-1">
-            <Label htmlFor={`key-${connection.id}-${field.key}`}>{field.label}</Label>
+            <Label htmlFor={`key-${connection.id}-${field.key}`}>
+              {t(`market_provider_${connection.id}_${field.key}_label`)}
+            </Label>
             {field.options ? (
               <OptionSelect
                 id={`key-${connection.id}-${field.key}`}
@@ -130,7 +140,9 @@ function Connection({
               >
                 {field.options.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label}
+                    {t(
+                      `market_provider_${connection.id}_${field.key}_${option.value || "default"}_label`,
+                    )}
                   </option>
                 ))}
               </OptionSelect>
@@ -144,8 +156,16 @@ function Connection({
                 }
                 placeholder={
                   connection.configured
-                    ? `Enter replacement ${field.label.toLowerCase()}`
-                    : `Enter ${field.label.toLowerCase()}`
+                    ? t("components_market_data_settings_enter_replacement", {
+                        label: t(
+                          `market_provider_${connection.id}_${field.key}_label`,
+                        ).toLowerCase(),
+                      })
+                    : t("components_market_data_settings_enter_field", {
+                        label: t(
+                          `market_provider_${connection.id}_${field.key}_label`,
+                        ).toLowerCase(),
+                      })
                 }
                 autoComplete="off"
                 spellCheck={false}
@@ -160,22 +180,24 @@ function Connection({
             disabled={busy || info.fields.some((field) => !fields[field.key]?.trim())}
             onClick={() => void act("save")}
           >
-            Save credentials
+            {t("components_market_data_settings_save_credentials_5717c2")}
           </Button>
         )}
         {publicSource && !connection.configured && (
           <Button disabled={busy} onClick={() => void act("enable")}>
-            Enable source
+            {t("components_market_data_settings_enable_source_74ed84")}
           </Button>
         )}
         {connection.configured && (
           <Button variant="outline" disabled={busy} onClick={() => void act("test")}>
-            Test connection
+            {t("components_market_data_settings_test_connection_ccf66f")}
           </Button>
         )}
         {connection.configured && !managed && (
           <Button variant="outline" disabled={busy} onClick={() => void act("remove")}>
-            {publicSource ? "Disable source" : "Remove credentials"}
+            {publicSource
+              ? t("components_market_data_settings_disable_source")
+              : t("components_market_data_settings_remove_credentials")}
           </Button>
         )}
       </div>

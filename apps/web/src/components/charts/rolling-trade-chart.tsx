@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import {
   CartesianGrid,
@@ -30,6 +31,7 @@ export function RollingTradeChart({
   timeZone: string;
 }) {
   const tokens = useVizTokens();
+  const t = useTranslations("extracted");
   const privacy = usePrivacy();
   const rate = metric === "winRate";
   const format = (value: number) =>
@@ -41,7 +43,9 @@ export function RollingTradeChart({
         <LineChart
           data={data}
           margin={{ top: 12, right: 14, bottom: 4, left: 0 }}
-          aria-label={`${rate ? "Win rate" : "Average net P&L"} over 20-trade windows. Exact values and links follow below.`}
+          aria-label={t("chart_rolling_description", {
+            metric: rate ? t("chart_win_rate") : t("chart_average_net_pnl"),
+          })}
         >
           <CartesianGrid stroke={tokens.gridline} vertical={false} />
           <XAxis
@@ -76,9 +80,14 @@ export function RollingTradeChart({
             contentStyle={tooltipStyle(tokens)}
             labelFormatter={(label) => {
               const point = data.find((point) => point.sequence === Number(label));
-              return `Trade #${label}${point ? ` · ${new Intl.DateTimeFormat("en", { timeZone, month: "short", day: "numeric", year: "numeric" }).format(new Date(point.closedAt))}` : ""}`;
+              return t("chart_trade_number_date", {
+                number: String(label),
+                date: point
+                  ? ` · ${new Intl.DateTimeFormat("en", { timeZone, month: "short", day: "numeric", year: "numeric" }).format(new Date(point.closedAt))}`
+                  : "",
+              });
             }}
-            formatter={(value) => [format(Number(value)), "Last 20 trades"]}
+            formatter={(value) => [format(Number(value)), t("chart_last_20_trades")]}
           />
           <Line
             dataKey={metric}

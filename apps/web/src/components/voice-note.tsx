@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import { Mic, MicOff } from "lucide-react";
@@ -14,6 +15,7 @@ export function VoiceNote({
   onText: (text: string) => void;
   onPrepare: () => void;
 }) {
+  const t = useTranslations("extracted");
   const [state, setState] = useState<"idle" | "starting" | "listening">("idle");
   const [error, setError] = useState("");
   const [keyboardHint, setKeyboardHint] = useState(false);
@@ -40,9 +42,7 @@ export function VoiceNote({
     };
     const Constructor = speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
     if (!Constructor) {
-      showError(
-        "This browser does not support speech recognition. Open the journal in Chrome, or use keyboard dictation below.",
-      );
+      showError(t("components_voice_note_speech_unsupported"));
       return;
     }
     try {
@@ -76,19 +76,23 @@ export function VoiceNote({
             size="sm"
             onClick={toggle}
             aria-pressed={state !== "idle"}
-            title={state === "idle" ? "Dictate your note" : "Stop dictation"}
+            title={
+              state === "idle"
+                ? t("components_voice_note_dictate_your_note_7fb1de")
+                : t("components_voice_note_stop_dictation_96ad53")
+            }
           >
             {state === "idle" ? <Mic /> : <MicOff />}
             {state === "starting"
-              ? "Starting…"
+              ? t("components_voice_note_starting_e5f580")
               : state === "listening"
-                ? "Listening · Stop"
-                : "Dictate"}
+                ? t("components_voice_note_listening_stop_44201a")
+                : t("components_voice_note_dictate_3eaff6")}
           </Button>
         </Popover.Anchor>
         <Popover.Portal>
           <Popover.Content
-            aria-label="Dictation help"
+            aria-label={t("components_voice_note_dictation_help_657d7b")}
             align="end"
             sideOffset={8}
             collisionPadding={12}
@@ -102,9 +106,7 @@ export function VoiceNote({
           >
             <p role="alert">{error}</p>
             <p className="text-muted-foreground">
-              Keyboard dictation types directly into your note. Use your keyboard’s microphone key
-              or your system’s dictation shortcut. On Mac, enable Dictation in System Settings →
-              Keyboard.
+              {t("components_voice_note_keyboard_dictation_types_directl_e231a9")}
             </p>
             <div className="flex flex-wrap gap-2">
               <Button
@@ -117,17 +119,17 @@ export function VoiceNote({
                   onPrepare();
                 }}
               >
-                Use keyboard dictation
+                {t("components_voice_note_use_keyboard_dictation_f8e862")}
               </Button>
               <Button type="button" size="sm" variant="ghost" onClick={() => setError("")}>
-                Dismiss
+                {t("components_voice_note_dismiss_70afe9")}
               </Button>
             </div>
           </Popover.Content>
         </Popover.Portal>
         {keyboardHint && (
           <span role="status" className="sr-only">
-            Note ready. Press your keyboard’s microphone key or dictation shortcut to speak.
+            {t("components_voice_note_note_ready_press_your_keyboard_s_7b597a")}
           </span>
         )}
       </div>

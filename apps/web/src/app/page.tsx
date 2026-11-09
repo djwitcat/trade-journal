@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import type {
@@ -93,12 +94,16 @@ export default function DashboardPage() {
 }
 
 function Dashboard() {
+  const t = useTranslations("extracted");
   const { query } = useFilters();
   const { data, loading, error, refresh } = useApi<StatsPayload>(`/api/stats?${query}`);
 
   return (
     <>
-      <FilterBar title="Dashboard" actions={<AddTradeDialog onSaved={refresh} />} />
+      <FilterBar
+        title={t("app_page_dashboard_d87f47")}
+        actions={<AddTradeDialog onSaved={refresh} />}
+      />
       <DashboardContent
         data={data}
         loading={loading}
@@ -123,20 +128,21 @@ function DashboardContent({
   refresh: () => void;
   query: string;
 }) {
+  const t = useTranslations("extracted");
   if (loading && !data) return <DashboardSkeleton />;
   if (!data)
     return (
       <div>
         <div className="space-y-3 p-4">
           <p role="alert" className="text-sm text-destructive">
-            {error ?? "Could not load the dashboard."}
+            {error ?? t("app_page_could_not_load_the_dashboard_e4b0da")}
           </p>
           <button
             type="button"
             className="rounded-md border px-3 py-2 text-sm hover:bg-accent"
             onClick={refresh}
           >
-            Try again
+            {t("app_page_try_again_042c86")}
           </button>
         </div>
       </div>
@@ -150,16 +156,19 @@ function DashboardContent({
         <div className="grid gap-3 p-4 sm:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>All accounts</CardTitle>
+              <CardTitle>{t("app_page_all_accounts_6a19f2")}</CardTitle>
             </CardHeader>
             <CardContent className="text-sm">
-              {closed} closed trades · {closed ? fmtPercent(wins / closed) : "–"} trade win rate
+              {closed} {t("app_page_closed_trades_f88312")}{" "}
+              {closed ? fmtPercent(wins / closed) : "–"} {t("app_page_trade_win_rate_9a0e00")}
             </CardContent>
           </Card>
           {data.currencyGroups.map((group) => (
             <Card key={group.currency}>
               <CardHeader>
-                <CardTitle>{group.currency} accounts</CardTitle>
+                <CardTitle>
+                  {group.currency} {t("app_page_accounts_10db27")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <Pnl
@@ -168,8 +177,8 @@ function DashboardContent({
                   className="text-2xl font-semibold"
                 />
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {group.metrics.closedTrades} closed trades · {fmtPercent(group.metrics.winRate)}{" "}
-                  trade win rate
+                  {group.metrics.closedTrades} {t("app_page_closed_trades_f88312")}{" "}
+                  {fmtPercent(group.metrics.winRate)} {t("app_page_trade_win_rate_9a0e00")}
                 </p>
               </CardContent>
             </Card>
@@ -186,7 +195,7 @@ function DashboardContent({
     return query ? (
       <div>
         <p className="p-12 text-center text-sm text-muted-foreground">
-          No trades match these filters. Clear or adjust Filters to see more results.
+          {t("app_page_no_trades_match_these_filters_cl_41e573")}
         </p>
       </div>
     ) : (
@@ -227,15 +236,15 @@ function DashboardContent({
         widgets={[
           {
             id: "widget-0",
-            label: "Net P&L",
+            label: t("app_page_net_p_l_152aa9"),
             size: "small",
             layoutGroup: "summary",
             content: (
               <Card className="h-full">
                 <StatHeader
-                  title="Net P&L"
+                  title={t("app_page_net_p_l_152aa9")}
                   icon={CircleDollarSign}
-                  hint="Realized profit and loss net of fees, over the selected range."
+                  hint={t("app_page_realized_profit_and_loss_net_of__1cd20a")}
                 />
                 <CardContent>
                   <Pnl
@@ -254,12 +263,13 @@ function DashboardContent({
                       <MonetaryValue>
                         {fmtMoney(Math.abs(weekDelta), currency).replace("+", "")}
                       </MonetaryValue>{" "}
-                      vs prior 7d
+                      {t("app_page_vs_prior_7d_f8894b")}
                     </div>
                   )}
                   <div className="mt-1 text-xs text-muted-foreground">
-                    {m.closedTrades} closed trades ·{" "}
-                    <MonetaryValue>{fmtMoney(m.fees, currency)}</MonetaryValue> fees
+                    {m.closedTrades} {t("app_page_closed_trades_f88312")}{" "}
+                    <MonetaryValue>{fmtMoney(m.fees, currency)}</MonetaryValue>{" "}
+                    {t("app_page_fees_44de56")}
                   </div>
                 </CardContent>
               </Card>
@@ -267,22 +277,28 @@ function DashboardContent({
           },
           {
             id: "widget-1",
-            label: "Trade win %",
+            label: t("app_page_trade_win_328ebd"),
             size: "small",
             layoutGroup: "summary",
             content: (
               <Card className="h-full">
                 <StatHeader
-                  title="Trade win %"
+                  title={t("app_page_trade_win_328ebd")}
                   icon={Target}
-                  hint="Winning trades divided by all closed trades, including breakevens."
+                  hint={t("app_page_winning_trades_divided_by_all_cl_6ec1b3")}
                 />
                 <CardContent className="flex items-center justify-between gap-2">
-                  <Gauge value={m.winRate} label="Trade win rate" />
+                  <Gauge value={m.winRate} label={t("app_page_trade_win_rate_6d44e6")} />
                   <div className="space-y-0.5 text-xs text-muted-foreground">
-                    <div>{m.wins} W</div>
-                    <div>{m.breakevens} BE</div>
-                    <div>{m.losses} L</div>
+                    <div>
+                      {m.wins} {t("app_page_w_e2415c")}
+                    </div>
+                    <div>
+                      {m.breakevens} {t("app_page_be_3472ff")}
+                    </div>
+                    <div>
+                      {m.losses} {t("app_page_l_d160e0")}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -290,15 +306,15 @@ function DashboardContent({
           },
           {
             id: "widget-2",
-            label: "Profit factor",
+            label: t("app_page_profit_factor_80e53e"),
             size: "small",
             layoutGroup: "summary",
             content: (
               <Card className="h-full">
                 <StatHeader
-                  title="Profit factor"
+                  title={t("app_page_profit_factor_80e53e")}
                   icon={Scale}
-                  hint="Gross profit ÷ gross loss. Above 1 means the wins outweigh the losses."
+                  hint={t("app_page_gross_profit_gross_loss_above_1__888899")}
                 />
                 <CardContent>
                   <div className="text-3xl font-semibold tracking-tight tnum">
@@ -309,7 +325,7 @@ function DashboardContent({
                         : fmtNumber(m.profitFactor)}
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">
-                    gross profit ÷ gross loss
+                    {t("app_page_gross_profit_gross_loss_30d00d")}
                   </div>
                 </CardContent>
               </Card>
@@ -317,34 +333,36 @@ function DashboardContent({
           },
           {
             id: "widget-3",
-            label: "Day win %",
+            label: t("app_page_day_win_4c7186"),
             size: "small",
             layoutGroup: "summary",
             content: (
               <Card className="h-full">
                 <StatHeader
-                  title="Day win %"
+                  title={t("app_page_day_win_4c7186")}
                   icon={CalendarCheck2}
-                  hint="Green trading days ÷ all trading days in the selected range."
+                  hint={t("app_page_green_trading_days_all_trading_d_14e9de")}
                 />
                 <CardContent className="flex items-center justify-between gap-2">
-                  <Gauge value={m.dayWinRate} label="Day win rate" />
-                  <div className="text-xs text-muted-foreground">{m.tradingDays} days</div>
+                  <Gauge value={m.dayWinRate} label={t("app_page_day_win_rate_ba24f7")} />
+                  <div className="text-xs text-muted-foreground">
+                    {m.tradingDays} {t("app_page_days_5548ae")}
+                  </div>
                 </CardContent>
               </Card>
             ),
           },
           {
             id: "widget-4",
-            label: "Avg win / loss",
+            label: t("app_page_avg_win_loss_5de6a5"),
             size: "small",
             layoutGroup: "summary",
             content: (
               <Card className="h-full">
                 <StatHeader
-                  title="Avg win / loss"
+                  title={t("app_page_avg_win_loss_5de6a5")}
                   icon={ArrowUpDown}
-                  hint="Average winning trade ÷ average losing trade. The bar shows the two to scale."
+                  hint={t("app_page_average_winning_trade_average_lo_05d57e")}
                 />
                 <CardContent>
                   <div className="text-3xl font-semibold tracking-tight tnum">
@@ -354,7 +372,7 @@ function DashboardContent({
                     <div
                       className="journal-progress-visual mt-2 flex h-1.5 gap-0.5"
                       role="img"
-                      aria-label="Average win vs average loss, to scale"
+                      aria-label={t("app_page_average_win_vs_average_loss_to_s_ad23b8")}
                     >
                       <span
                         className="rounded-full bg-profit"
@@ -373,7 +391,7 @@ function DashboardContent({
                         <MonetaryValue>{fmtMoney(m.avgWin, currency)}</MonetaryValue>
                       )}
                     </span>
-                    {" avg win · "}
+                    {t("app_page_avg_win_210e76")}
                     <span className="text-loss">
                       {m.avgLoss === null ? (
                         "–"
@@ -381,7 +399,7 @@ function DashboardContent({
                         <MonetaryValue>{fmtMoney(-m.avgLoss, currency)}</MonetaryValue>
                       )}
                     </span>
-                    {" avg loss"}
+                    {t("app_page_avg_loss_b16384")}
                   </div>
                 </CardContent>
               </Card>
@@ -389,17 +407,16 @@ function DashboardContent({
           },
           {
             id: "widget-5",
-            label: "Edge Score",
+            label: t("app_page_edge_score_6a4344"),
             size: "medium",
             layoutGroup: "visuals",
             content: (
               <Card className="dashboard-visual-card h-full">
                 <CardHeader className="flex-row items-center justify-between">
                   <div className="flex min-w-0 items-center gap-1">
-                    <CardTitle>Edge Score</CardTitle>
-                    <HelpHint heading="Edge Score">
-                      A 0–100 score combining win rate, profit factor, average win/loss, drawdown,
-                      recovery, and consistency. Requires at least five closed trades.
+                    <CardTitle>{t("app_page_edge_score_6a4344")}</CardTitle>
+                    <HelpHint heading={t("app_page_edge_score_6a4344")}>
+                      {t("app_page_a_0_100_score_combining_win_rate_d9b104")}
                     </HelpHint>
                   </div>
                   <span className="text-2xl font-semibold tracking-tight tnum">
@@ -414,14 +431,14 @@ function DashboardContent({
                 <CardContent className="dashboard-visual-card-content">
                   {edgeScore.score === null ? (
                     <p className="py-8 text-center text-sm text-muted-foreground">
-                      Needs 5+ closed trades. The formula is open —{" "}
+                      {t("app_page_needs_5_closed_trades_the_formul_eed26b")}{" "}
                       <a
                         className="underline"
                         href="https://github.com/LuxAlgo/trade-journal/blob/main/docs/edge-score.md"
                         target="_blank"
                         rel="noreferrer"
                       >
-                        read it
+                        {t("app_page_read_it_eebcf6")}
                       </a>
                       .
                     </p>
@@ -434,16 +451,15 @@ function DashboardContent({
           },
           {
             id: "widget-6",
-            label: "Cumulative P&L",
+            label: t("app_page_cumulative_p_l_4ac64f"),
             size: "medium",
             layoutGroup: "visuals",
             content: (
               <Card className="dashboard-visual-card h-full">
                 <CardHeader className="flex-row items-center justify-between">
-                  <CardTitle>Daily net cumulative P&L</CardTitle>
-                  <HelpHint heading="Cumulative P&L">
-                    Running total of net profit and loss over the selected period. The drawdown bars
-                    below show declines from the running equity peak.
+                  <CardTitle>{t("app_page_daily_net_cumulative_p_l_b3e4f5")}</CardTitle>
+                  <HelpHint heading={t("app_page_cumulative_p_l_4ac64f")}>
+                    {t("app_page_running_total_of_net_profit_and__d5f564")}
                   </HelpHint>
                 </CardHeader>
                 <CardContent>
@@ -460,16 +476,15 @@ function DashboardContent({
           },
           {
             id: "widget-7",
-            label: "Daily P&L",
+            label: t("app_page_daily_p_l_8cfaf5"),
             size: "medium",
             layoutGroup: "visuals",
             content: (
               <Card className="dashboard-visual-card h-full">
                 <CardHeader className="flex-row items-center justify-between">
-                  <CardTitle>Net daily P&L</CardTitle>
-                  <HelpHint heading="Daily P&L">
-                    Net profit or loss for each trading day. Bars above zero are profitable; bars
-                    below zero are losses.
+                  <CardTitle>{t("app_page_net_daily_p_l_ec7807")}</CardTitle>
+                  <HelpHint heading={t("app_page_daily_p_l_8cfaf5")}>
+                    {t("app_page_net_profit_or_loss_for_each_trad_e80808")}
                   </HelpHint>
                 </CardHeader>
                 <CardContent className="dashboard-visual-card-content">
@@ -484,7 +499,7 @@ function DashboardContent({
           },
           {
             id: "widget-8",
-            label: "Calendar",
+            label: t("app_page_calendar_adab50"),
             size: "wide",
             layoutGroup: "detail",
             content: (
@@ -500,7 +515,7 @@ function DashboardContent({
                     href={`/calendar?${query}`}
                     className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
                   >
-                    Full calendar
+                    {t("app_page_full_calendar_e35521")}
                   </Link>
                 </CardHeader>
                 <CardContent>
@@ -516,26 +531,28 @@ function DashboardContent({
           },
           {
             id: "widget-9",
-            label: "Activity",
+            label: t("app_page_activity_81c0d9"),
             size: "medium",
             layoutGroup: "detail",
             content: (
               <Card className="h-full">
                 <CardHeader>
-                  <CardTitle>Activity</CardTitle>
+                  <CardTitle>{t("app_page_activity_81c0d9")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Tabs defaultValue="recent">
                     <TabsList className="h-8">
                       <TabsTrigger value="recent" className="text-xs">
-                        Recent trades
+                        {t("app_page_recent_trades_87d593")}
                       </TabsTrigger>
                       <TabsTrigger value="open" className="text-xs">
-                        Open positions
+                        {t("app_page_open_positions_4de966")}
                       </TabsTrigger>
                     </TabsList>
                     <TabsContent value="recent" className="space-y-1">
-                      {data.recentTrades.length === 0 && <Empty label="No closed trades yet" />}
+                      {data.recentTrades.length === 0 && (
+                        <Empty label={t("app_page_no_closed_trades_yet_ccaafb")} />
+                      )}
                       {data.recentTrades.map((trade) => (
                         <Link
                           key={trade.key}
@@ -567,7 +584,7 @@ function DashboardContent({
                     </TabsContent>
                     <TabsContent value="open" className="space-y-1">
                       {data.openPositions.length === 0 && (
-                        <Empty label="Flat — no open positions" />
+                        <Empty label={t("app_page_flat_no_open_positions_82b18b")} />
                       )}
                       {data.openPositions.map((position) => (
                         <div
@@ -594,15 +611,15 @@ function DashboardContent({
           },
           {
             id: "widget-10",
-            label: "Max drawdown",
+            label: t("app_page_max_drawdown_3904fd"),
             size: "small",
             layoutGroup: "secondary",
             content: (
               <Card className="h-full">
                 <StatHeader
-                  title="Max drawdown"
+                  title={t("app_page_max_drawdown_3904fd")}
                   icon={TrendingDown}
-                  hint="Largest peak-to-trough drop of the cumulative P&L curve."
+                  hint={t("app_page_largest_peak_to_trough_drop_of_t_3fef39")}
                 />
                 <CardContent>
                   <div className="text-xl font-semibold tnum text-loss">
@@ -610,7 +627,7 @@ function DashboardContent({
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">
                     {m.maxDrawdownPct === null
-                      ? "set an initial balance for %"
+                      ? t("app_page_set_an_initial_balance_for_e84d9b")
                       : fmtPercent(m.maxDrawdownPct)}
                     {m.recoveryFactor !== null && ` · recovery ${fmtNumber(m.recoveryFactor)}x`}
                   </div>
@@ -620,15 +637,15 @@ function DashboardContent({
           },
           {
             id: "widget-11",
-            label: "Streaks",
+            label: t("app_page_streaks_0de6ad"),
             size: "small",
             layoutGroup: "secondary",
             content: (
               <Card className="h-full">
                 <StatHeader
-                  title="Streaks"
+                  title={t("app_page_streaks_0de6ad")}
                   icon={Flame}
-                  hint="Current run of consecutive wins (W) or losses (L), with the best and worst runs."
+                  hint={t("app_page_current_run_of_consecutive_wins__ac2bc8")}
                 />
                 <CardContent>
                   <div className="text-xl font-semibold tnum">
@@ -639,7 +656,9 @@ function DashboardContent({
                         : "–"}
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">
-                    best {m.maxWinStreak}W · worst {m.maxLossStreak}L
+                    {t("app_page_best_c5f5e4")} {m.maxWinStreak}
+                    {t("app_page_w_worst_0a8410")} {m.maxLossStreak}
+                    {t("app_page_l_d160e0")}
                   </div>
                 </CardContent>
               </Card>
@@ -647,15 +666,15 @@ function DashboardContent({
           },
           {
             id: "widget-12",
-            label: "Expectancy / trade",
+            label: t("app_page_expectancy_trade_314fa5"),
             size: "small",
             layoutGroup: "secondary",
             content: (
               <Card className="h-full">
                 <StatHeader
-                  title="Expectancy / trade"
+                  title={t("app_page_expectancy_trade_314fa5")}
                   icon={Sigma}
-                  hint="Average net P&L per closed trade: what one more trade is worth on your numbers."
+                  hint={t("app_page_average_net_p_l_per_closed_trade_4e8b6f")}
                 />
                 <CardContent>
                   {m.expectancy === null ? (
@@ -669,8 +688,11 @@ function DashboardContent({
                   )}
                   <div className="mt-1 text-xs text-muted-foreground">
                     {m.avgRealizedR !== null && m.tradesWithRisk > 0
-                      ? `avg ${fmtNumber(m.avgRealizedR)}R over ${m.tradesWithRisk} risk-tagged trades`
-                      : "tag stop-losses to unlock R multiples"}
+                      ? t("dashboard_average_risk", {
+                          average: fmtNumber(m.avgRealizedR),
+                          count: m.tradesWithRisk,
+                        })
+                      : t("app_page_tag_stop_losses_to_unlock_r_mult_e68058")}
                   </div>
                 </CardContent>
               </Card>
@@ -678,20 +700,20 @@ function DashboardContent({
           },
           {
             id: "widget-13",
-            label: "Avg duration",
+            label: t("app_page_avg_duration_9f47e2"),
             size: "small",
             layoutGroup: "secondary",
             content: (
               <Card className="h-full">
                 <StatHeader
-                  title="Avg duration"
+                  title={t("app_page_avg_duration_9f47e2")}
                   icon={Timer}
-                  hint="Average time from first entry fill to final exit."
+                  hint={t("app_page_average_time_from_first_entry_fi_8eb9ac")}
                 />
                 <CardContent>
                   <div className="text-xl font-semibold tnum">{fmtDuration(m.avgDurationMs)}</div>
                   <div className="mt-1 text-xs text-muted-foreground">
-                    winners vs losers in Reports
+                    {t("app_page_winners_vs_losers_in_reports_e832c7")}
                   </div>
                 </CardContent>
               </Card>
@@ -699,15 +721,15 @@ function DashboardContent({
           },
           {
             id: "widget-14",
-            label: "Best / worst day",
+            label: t("app_page_best_worst_day_a8db0b"),
             size: "small",
             layoutGroup: "secondary",
             content: (
               <Card className="h-full">
                 <StatHeader
-                  title="Best / worst day"
+                  title={t("app_page_best_worst_day_a8db0b")}
                   icon={Trophy}
-                  hint="Highest and lowest single-day net P&L in the selected range."
+                  hint={t("app_page_highest_and_lowest_single_day_ne_e76dea")}
                 />
                 <CardContent className="space-y-1">
                   {bestDay && (
@@ -738,16 +760,15 @@ function DashboardContent({
           },
           {
             id: "widget-15",
-            label: "Trade time performance",
+            label: t("app_page_trade_time_performance_9485a8"),
             size: "full",
             layoutGroup: "full",
             content: (
               <Card className="h-full">
                 <CardHeader className="flex-row items-center justify-between">
-                  <CardTitle>Trade time performance</CardTitle>
-                  <HelpHint heading="Trade time performance">
-                    Trades grouped by their opening hour. The upper chart shows net P&L; the lower
-                    chart shows trade count.
+                  <CardTitle>{t("app_page_trade_time_performance_9485a8")}</CardTitle>
+                  <HelpHint heading={t("app_page_trade_time_performance_9485a8")}>
+                    {t("app_page_trades_grouped_by_their_opening__1648be")}
                   </HelpHint>
                 </CardHeader>
                 <CardContent>
@@ -779,11 +800,12 @@ function StatHeader({
   hint: string;
   icon: React.ComponentType<{ className?: string }>;
 }) {
+  const t = useTranslations("extracted");
   return (
     <CardHeader className="flex-row items-center justify-between space-y-0">
       <CardTitle>{title}</CardTitle>
       <Tooltip>
-        <TooltipTrigger className="cursor-help" aria-label={`About ${title}`}>
+        <TooltipTrigger className="cursor-help" aria-label={t("dashboard_about_metric", { title })}>
           <Icon className="h-3.5 w-3.5 text-muted-foreground/70" />
         </TooltipTrigger>
         <TooltipContent>
@@ -800,6 +822,7 @@ function Empty({ label }: { label: string }) {
 }
 
 function EmptyState() {
+  const t = useTranslations("extracted");
   const [loadingDemo, setLoadingDemo] = useState(false);
   const loadDemo = async () => {
     setLoadingDemo(true);
@@ -813,28 +836,27 @@ function EmptyState() {
   return (
     <div>
       <div className="flex flex-col items-center justify-center gap-3 px-4 py-24 text-center">
-        <h2 className="text-xl font-semibold">Your journal is empty</h2>
+        <h2 className="text-xl font-semibold">{t("app_page_your_journal_is_empty_709314")}</h2>
         <p className="max-w-md text-sm text-muted-foreground">
-          Connect a broker for automatic sync, upload a statement from 10+ platforms (including your
-          TradeZella export), or add trades manually.
+          {t("app_page_connect_a_broker_for_automatic_s_25faff")}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-2">
           <Link
             href="/import"
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
-            Import your first trades
+            {t("app_page_import_your_first_trades_7d7efe")}
           </Link>
           <button
             onClick={loadDemo}
             disabled={loadingDemo}
             className="rounded-md border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50"
           >
-            {loadingDemo ? "Loading…" : "Load demo data"}
+            {loadingDemo ? t("app_page_loading_33ce41") : t("app_page_load_demo_data_e41a5e")}
           </button>
         </div>
         <p className="text-xs text-muted-foreground">
-          Demo data lands in its own account; delete it anytime under Accounts.
+          {t("app_page_demo_data_lands_in_its_own_accou_44ca05")}
         </p>
       </div>
     </div>

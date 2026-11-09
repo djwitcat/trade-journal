@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -30,6 +31,7 @@ export function AccountPicker({
   onChange: (id: string) => void;
   kind: "import" | "manual";
 }) {
+  const t = useTranslations("extracted");
   const {
     data,
     refresh,
@@ -47,11 +49,11 @@ export function AccountPicker({
     <div className="flex min-w-0 flex-wrap items-end gap-2">
       <div className="min-w-0 flex-[1_1_180px]">
         <Label htmlFor={`${fieldId}-account`} className="mb-1 block text-xs text-muted-foreground">
-          Into account
+          {t("components_account_picker_into_account_e85268")}
         </Label>
         <Select value={value} onValueChange={onChange}>
           <SelectTrigger id={`${fieldId}-account`}>
-            <SelectValue placeholder="Choose an account" />
+            <SelectValue placeholder={t("components_account_picker_choose_an_account_dc4922")} />
           </SelectTrigger>
           <SelectContent>
             {accounts.map((account) => (
@@ -69,7 +71,9 @@ export function AccountPicker({
         disabled={saving}
         onClick={() => setCreating(!creating)}
       >
-        {creating ? "Cancel new account" : "New account"}
+        {creating
+          ? t("components_account_picker_cancel_new_account_21297c")
+          : t("components_account_picker_new_account_d33d78")}
       </Button>
       {accountError && (
         <p role="alert" className="w-full text-sm text-destructive">
