@@ -34,6 +34,12 @@ const languageModel = (provider: AiProvider, apiKey: string | null, model: strin
       baseURL: getCompatibleBaseUrl()!,
       apiKey: apiKey ?? undefined,
     })(model);
+  if (provider === "deepseek")
+    return createOpenAICompatible({
+      name: "deepseek",
+      baseURL: "https://api.deepseek.com/v1",
+      apiKey: apiKey!,
+    })(model);
   return provider === "openai"
     ? createOpenAI({ apiKey: apiKey! }).responses(model)
     : createAnthropic({ apiKey: apiKey! })(model);

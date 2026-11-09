@@ -84,9 +84,9 @@ export function AiSettings() {
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm text-muted-foreground">
-          Use Anthropic, OpenAI, or an OpenAI-compatible server such as Ollama, LM Studio or
-          OpenRouter for recaps, trade critiques, and “ask your journal”. Your key is encrypted at
-          rest. AI requests go from your server directly to the provider you select.
+          Use Anthropic, OpenAI, DeepSeek, or an OpenAI-compatible server such as Ollama, LM Studio
+          or OpenRouter for recaps, trade critiques, and “ask your journal”. Your key is encrypted
+          at rest. AI requests go from your server directly to the provider you select.
         </p>
         {data && (
           <p className="text-xs text-muted-foreground">

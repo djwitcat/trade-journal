@@ -7,7 +7,7 @@ export const AI_IMPORT_HELP =
   "If you're having issues importing a file, AI parsing can help. The journal supports many broker exports, but column names and statement layouts can change. OpenAI or Anthropic can interpret unfamiliar formats and extract trades for your review. Check quantities, prices, fees and dates against your statement before importing. Your file is sent to your chosen provider using your API key; provider usage charges apply.";
 
 /** Statement parsing needs PDF input and strict structured output, so it stays on hosted providers. */
-export type AiImportProvider = Exclude<AiProvider, "compatible">;
+export type AiImportProvider = Extract<AiProvider, "openai" | "anthropic">;
 export const isAiImportProvider = (value: unknown): value is AiImportProvider =>
   value === "openai" || value === "anthropic";
 

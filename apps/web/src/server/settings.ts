@@ -108,8 +108,10 @@ export const setCompatibleBaseUrl = (url: string, keepKey: boolean): void => {
 export const getAiProvider = (): AiProvider => {
   const selected = getSetting("aiProvider");
   if (isAiProvider(selected)) return selected;
-  // Preserve existing Anthropic setups; an OpenAI-only setup works without a UI visit.
-  return !getAiKey("anthropic") && getAiKey("openai") ? "openai" : "anthropic";
+  // Preserve existing Anthropic setups; select another hosted provider when it is the only key.
+  if (getAiKey("anthropic")) return "anthropic";
+  if (getAiKey("openai")) return "openai";
+  return getAiKey("deepseek") ? "deepseek" : "anthropic";
 };
 
 /** Anthropic keeps the legacy "aiModel" key; other providers use "<provider>Model". */
@@ -140,6 +142,7 @@ export const getAiSettings = (): AiSettingsPayload => {
   const aiConnections = {
     anthropic: connection("anthropic"),
     openai: connection("openai"),
+    deepseek: connection("deepseek"),
     compatible: connection("compatible"),
   };
   return {

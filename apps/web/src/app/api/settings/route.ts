@@ -36,6 +36,7 @@ interface SettingsBody {
   /** Set to a key string to store (encrypted), or null to clear. Absent = unchanged. */
   anthropicKey?: string | null;
   openaiKey?: string | null;
+  deepseekKey?: string | null;
   compatibleKey?: string | null;
   /** OpenAI-compatible API root. A different URL clears the saved key unless one is sent. */
   compatibleBaseUrl?: string;
@@ -75,7 +76,7 @@ export const PATCH = handler(async (request: Request) => {
   if (body.aiProvider !== undefined)
     requireValue(
       isAiProvider(body.aiProvider),
-      "Choose Anthropic, OpenAI or an OpenAI-compatible server.",
+      "Choose Anthropic, OpenAI, DeepSeek or an OpenAI-compatible server.",
     );
   const provider = body.aiProvider ?? getAiProvider();
   const compatibleBaseUrl =

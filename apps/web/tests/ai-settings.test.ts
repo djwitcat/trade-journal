@@ -27,6 +27,7 @@ beforeEach(() => {
   db.delete(settings).run();
   vi.stubEnv("ANTHROPIC_API_KEY", "");
   vi.stubEnv("OPENAI_API_KEY", "");
+  vi.stubEnv("DEEPSEEK_API_KEY", "");
   vi.stubEnv("JOURNAL_PASSWORD", "");
   vi.stubGlobal(
     "fetch",
@@ -86,6 +87,7 @@ describe("AI provider settings", () => {
       aiProvider: "openai",
       openaiKey: "fixture-private-openai",
       anthropicKey: "fixture-private-anthropic",
+      deepseekKey: "fixture-private-deepseek",
       compatibleKey: "fixture-private-compatible",
       compatibleBaseUrl: "http://localhost:11434/v1",
     });
@@ -96,6 +98,7 @@ describe("AI provider settings", () => {
       expect(body).not.toContain("fixture-private");
       expect(body).not.toContain(getSetting("openaiKeyEnc")!);
       expect(body).not.toContain(getSetting("anthropicKeyEnc")!);
+      expect(body).not.toContain(getSetting("deepseekKeyEnc")!);
       expect(body).not.toContain(getSetting("compatibleKeyEnc")!);
     }
   });
@@ -127,11 +130,26 @@ describe("AI provider settings", () => {
     expect(getAiProvider()).toBe("openai");
   });
 
-  it.each(["openai", "anthropic"] as const)(
+  it("selects DeepSeek when it is the only configured provider", async () => {
+    vi.stubEnv("DEEPSEEK_API_KEY", "fixture-env-deepseek");
+    expect(await state()).toMatchObject({
+      aiProvider: "deepseek",
+      aiConfigured: true,
+      aiModel: "deepseek-flash",
+      aiConnections: { deepseek: { configured: true, source: "environment" } },
+    });
+    vi.stubEnv("OPENAI_API_KEY", "fixture-env-openai");
+    expect(getAiProvider()).toBe("openai");
+    await save({ aiProvider: "deepseek", aiModel: "deepseek-reasoner" });
+    expect(getAiProvider()).toBe("deepseek");
+    expect(getAiModel("deepseek")).toBe("deepseek-reasoner");
+  });
+
+  it.each(["openai", "anthropic", "deepseek"] as const)(
     "honors %s environment precedence and blocks misleading key edits",
     async (provider) => {
       await save({ [`${provider}Key`]: "fixture-saved" });
-      vi.stubEnv(provider === "openai" ? "OPENAI_API_KEY" : "ANTHROPIC_API_KEY", "fixture-env");
+      vi.stubEnv(`${provider.toUpperCase()}_API_KEY`, "fixture-env");
       expect(getAiKey(provider)).toBe("fixture-env");
       for (const key of [null, "fixture-replacement"])
         expect((await save({ [`${provider}Key`]: key })).status).toBe(400);
@@ -149,6 +167,7 @@ describe("AI provider settings", () => {
       ...["", " ", 42, {}, "key\nvalue", "a".repeat(4097)].flatMap((key) => [
         { openaiKey: key },
         { anthropicKey: key },
+        { deepseekKey: key },
         { compatibleKey: key },
       ]),
     ]) {
@@ -281,6 +300,39 @@ describe("OpenAI-compatible provider", () => {
 });
 
 describe("AI provider requests through the real SDK adapters", () => {
+  it("sends DeepSeek's key and model only to its Chat Completions endpoint", async () => {
+    await save({
+      aiProvider: "deepseek",
+      deepseekKey: "fixture-deepseek",
+      openaiKey: "fixture-openai",
+    });
+    const fetcher = vi.fn(async () =>
+      Response.json({
+        id: "chatcmpl_fixture",
+        object: "chat.completion",
+        created: 1,
+        model: "deepseek-flash",
+        choices: [
+          {
+            index: 0,
+            message: { role: "assistant", content: "DeepSeek reflection" },
+            finish_reason: "stop",
+          },
+        ],
+        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      }),
+    );
+    vi.stubGlobal("fetch", fetcher);
+    expect(await runAi("Fixture journal question", 700)).toBe("DeepSeek reflection");
+    const [url, init] = (fetcher.mock.calls as unknown as [string, RequestInit][])[0]!;
+    expect(url).toBe("https://api.deepseek.com/v1/chat/completions");
+    expect(new Headers(init.headers).get("Authorization")).toBe("Bearer fixture-deepseek");
+    expect(JSON.stringify(init)).not.toContain("fixture-openai");
+    const body = JSON.parse(init.body as string);
+    expect(body).toMatchObject({ model: "deepseek-flash", max_tokens: 700 });
+    expect(JSON.stringify(body.messages)).toContain("Fixture journal question");
+  });
+
   it("sends OpenAI's key and model to Responses with storage disabled", async () => {
     await save({
       aiProvider: "openai",

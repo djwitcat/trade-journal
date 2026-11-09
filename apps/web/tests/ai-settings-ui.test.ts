@@ -29,6 +29,7 @@ const settings = (
   const aiConnections = {
     anthropic: connection("claude-opus-5"),
     openai: connection("gpt-4.1-mini"),
+    deepseek: connection("deepseek-flash"),
     compatible: connection(""),
     ...connections,
   };

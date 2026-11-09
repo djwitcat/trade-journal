@@ -37,7 +37,7 @@ export function aiFeedback(message: string): AiFeedback {
     return {
       title: "Set up AI to continue",
       description:
-        "Connect Anthropic, OpenAI or an OpenAI-compatible server in Settings to ask questions, generate recaps, and review trades.",
+        "Connect Anthropic, OpenAI, DeepSeek or an OpenAI-compatible server in Settings to ask questions, generate recaps, and review trades.",
       tone: "info",
       action: { label: "Set up AI", href: "/settings#ai-settings" },
     };
