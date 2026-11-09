@@ -75,6 +75,36 @@ docker compose up -d
 # http://localhost:3000, data persisted in ./data on the host
 ```
 
+### macOS with PM2
+
+Install Node 22+, pnpm 11.0.8, and PM2 on the Mac, then run from the repository root:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm build
+pm2 start ecosystem.config.cjs
+pm2 save
+```
+
+The PM2 app runs the production server on port 3000 with one process. Its working directory is
+`apps/web`, so the default database and attachments stay in `apps/web/data/`. Set optional variables
+such as `JOURNAL_PASSWORD` and `JOURNAL_LOCALE=zh-CN` in `apps/web/.env.local` before building.
+The root `.env.example` is a template; Next.js reads `.env.local` from `apps/web`. Keep the data
+directory and `.env.local` when updating the checkout. If other devices can reach the Mac, set
+`JOURNAL_PASSWORD` before exposing the port.
+
+For automatic restart after a Mac reboot, run `pm2 startup` and follow the command it prints, then
+run `pm2 save` again. After code or locale changes, rebuild and restart the process:
+
+```bash
+pnpm build
+pm2 restart trade-journal
+```
+
+Use `pm2 logs trade-journal` to inspect errors and `pm2 stop trade-journal` to stop the server.
+Stop PM2 before starting `pnpm dev` on the same port. For a complete backup, stop the process and
+copy `apps/web/data/`; see [Export and backup](#export-and-backup).
+
 ### Configuration (all optional)
 
 | Env var              | Effect                                                                                                   |
