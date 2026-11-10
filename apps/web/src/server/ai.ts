@@ -46,8 +46,9 @@ const languageModel = (provider: AiProvider, apiKey: string | null, model: strin
     : createAnthropic({ apiKey: apiKey! })(model);
 };
 
-export const runAi = async (prompt: string, maxOutputTokens = 1200): Promise<string> => {
+export const runAi = async (prompt: string, maxOutputTokens?: number): Promise<string> => {
   const provider = getAiProvider();
+  const outputLimit = maxOutputTokens ?? (provider === "deepseek" ? 8192 : 1200);
   if (!aiProviderConfigured(provider)) {
     throw new Error(
       provider === "compatible"
@@ -61,7 +62,7 @@ export const runAi = async (prompt: string, maxOutputTokens = 1200): Promise<str
       ...(provider === "openai" ? { providerOptions: { openai: { store: false } } } : {}),
       system: localizedAiSystem(SYSTEM),
       prompt,
-      maxOutputTokens,
+      maxOutputTokens: outputLimit,
     });
     if (!result.text.trim()) {
       console.error("AI returned empty text", {

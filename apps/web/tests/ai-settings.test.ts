@@ -333,6 +333,26 @@ describe("AI provider requests through the real SDK adapters", () => {
     expect(JSON.stringify(body.messages)).toContain("Fixture journal question");
   });
 
+  it("allows DeepSeek enough output tokens for reasoning before the final answer", async () => {
+    await save({ aiProvider: "deepseek", deepseekKey: "fixture-deepseek" });
+    const fetcher = vi.fn(async () =>
+      Response.json({
+        id: "chatcmpl_fixture",
+        object: "chat.completion",
+        created: 1,
+        model: "deepseek-flash",
+        choices: [
+          { index: 0, message: { role: "assistant", content: "点评" }, finish_reason: "stop" },
+        ],
+        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      }),
+    );
+    vi.stubGlobal("fetch", fetcher);
+    expect(await runAi("Fixture prompt")).toBe("点评");
+    const body = JSON.parse((fetcher.mock.calls as unknown as [string, RequestInit][])[0]![1].body as string);
+    expect(body.max_tokens).toBe(8192);
+  });
+
   it("requests Simplified Chinese for journal responses only when selected", async () => {
     await save({ aiProvider: "deepseek", deepseekKey: "fixture-deepseek" });
     const fetcher = vi.fn(async () =>
