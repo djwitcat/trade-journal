@@ -67,6 +67,11 @@ export const runAi = async (prompt: string, maxOutputTokens = 1200): Promise<str
     return result.text;
   } catch (error) {
     if (RetryError.isInstance(error)) error = error.lastError;
+    console.error("AI request failed", {
+      provider,
+      status: APICallError.isInstance(error) ? error.statusCode : undefined,
+      type: error instanceof Error ? error.name : typeof error,
+    });
     // Provider error messages can contain key fragments or request data. Never relay them.
     if (APICallError.isInstance(error)) {
       if (error.statusCode === 401 || error.statusCode === 403)
