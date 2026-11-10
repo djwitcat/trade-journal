@@ -85,20 +85,6 @@ it.each([
   expect((await response.json()).scope.label).toContain("Account A");
 });
 
-it("requests a Chinese recap when the journal locale is Simplified Chinese", async () => {
-  const originalLocale = process.env.JOURNAL_LOCALE;
-  vi.stubEnv("JOURNAL_LOCALE", "zh-CN");
-  try {
-    const response = await recap(request({ date: "2026-09-15", filters: {} }));
-    expect(response.status).toBe(200);
-    expect(prompt()).toContain("Write a session recap");
-    expect(prompt()).toContain("Write the entire recap in Simplified Chinese.");
-  } finally {
-    if (originalLocale === undefined) delete process.env.JOURNAL_LOCALE;
-    else process.env.JOURNAL_LOCALE = originalLocale;
-  }
-});
-
 it.each(["ask", "recap"])(
   "%s respects single, multiple and all accounts with named totals",
   async (name) => {

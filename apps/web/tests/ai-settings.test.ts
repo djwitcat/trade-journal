@@ -333,6 +333,37 @@ describe("AI provider requests through the real SDK adapters", () => {
     expect(JSON.stringify(body.messages)).toContain("Fixture journal question");
   });
 
+  it("requests Simplified Chinese for journal responses only when selected", async () => {
+    await save({ aiProvider: "deepseek", deepseekKey: "fixture-deepseek" });
+    const fetcher = vi.fn(async () =>
+      Response.json({
+        id: "chatcmpl_fixture",
+        object: "chat.completion",
+        created: 1,
+        model: "deepseek-flash",
+        choices: [
+          { index: 0, message: { role: "assistant", content: "中文复盘" }, finish_reason: "stop" },
+        ],
+        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      }),
+    );
+    vi.stubGlobal("fetch", fetcher);
+    vi.stubEnv("JOURNAL_LOCALE", "zh-CN");
+    await runAi("Fixture prompt");
+    const chinese = JSON.parse(
+      (fetcher.mock.calls as unknown as [string, RequestInit][])[0]![1].body as string,
+    );
+    expect(chinese.messages[0].content).toContain(
+      "Write all human-readable output in Simplified Chinese",
+    );
+    vi.stubEnv("JOURNAL_LOCALE", "en");
+    await runAi("Fixture prompt");
+    const english = JSON.parse(
+      (fetcher.mock.calls as unknown as [string, RequestInit][])[1]![1].body as string,
+    );
+    expect(english.messages[0].content).not.toContain("Simplified Chinese");
+  });
+
   it("sends OpenAI's key and model to Responses with storage disabled", async () => {
     await save({
       aiProvider: "openai",

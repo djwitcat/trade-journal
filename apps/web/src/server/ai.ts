@@ -10,6 +10,7 @@ import {
   getCompatibleBaseUrl,
 } from "./settings";
 import { AI_PROVIDER_NAMES, type AiProvider } from "@/lib/ai-settings";
+import { localizedAiSystem } from "./ai-language";
 
 /**
  * BYO-key AI. Self-hosted means YOUR key on YOUR box: the key is read from the
@@ -58,7 +59,7 @@ export const runAi = async (prompt: string, maxOutputTokens = 1200): Promise<str
     const result = await generateText({
       model: languageModel(provider, getAiKey(provider), getAiModel(provider)),
       ...(provider === "openai" ? { providerOptions: { openai: { store: false } } } : {}),
-      system: SYSTEM,
+      system: localizedAiSystem(SYSTEM),
       prompt,
       maxOutputTokens,
     });

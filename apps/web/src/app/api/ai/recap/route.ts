@@ -51,9 +51,7 @@ fees ${metrics.fees.toFixed(2)}.
 Trades:
 ${tradeLines}
 
-${existingNote ? `The trader's own note so far (respect it, build on it):\n${existingNote}` : ""}
-
-${process.env.JOURNAL_LOCALE === "zh-CN" ? "Write the entire recap in Simplified Chinese. Keep trading symbols, figures, and Markdown formatting unchanged. Translate the Keep and Fix headings into Chinese." : ""}`,
+${existingNote ? `The trader's own note so far (respect it, build on it):\n${existingNote}` : ""}`,
   );
 
   return ok({ recap, scope: scope.scope });

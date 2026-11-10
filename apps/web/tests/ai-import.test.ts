@@ -115,6 +115,20 @@ it.each(["openai", "anthropic"])(
     expect(JSON.stringify(preview)).not.toContain("test-only-key");
   },
 );
+it("localizes only the human-readable parts of AI import output", async () => {
+  const originalLocale = process.env.JOURNAL_LOCALE;
+  vi.stubEnv("JOURNAL_LOCALE", "zh-CN");
+  try {
+    const response = await request({ ...base, mode: "preview" });
+    expect(response.status).toBe(200);
+    const options = vi.mocked(generateText).mock.calls[0]![0];
+    expect(options.system).toContain("Write all human-readable output in Simplified Chinese");
+    expect(options.system).toContain("Preserve JSON property names, enum values");
+  } finally {
+    if (originalLocale === undefined) delete process.env.JOURNAL_LOCALE;
+    else process.env.JOURNAL_LOCALE = originalLocale;
+  }
+});
 it("keeps statement parsing on hosted providers that accept PDFs and strict schemas", async () => {
   setSetting("compatibleBaseUrl", "http://localhost:11434/v1");
   const response = await request({

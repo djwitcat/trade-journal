@@ -19,6 +19,7 @@ import { getAiKey } from "./settings";
 import { encryptJson, decryptJson } from "./crypto";
 import { executionHash } from "./ids";
 import { executionProblem } from "./executions";
+import { localizedAiSystem } from "./ai-language";
 
 interface Extraction {
   complete: boolean;
@@ -216,7 +217,7 @@ export async function parseStatementWithAi(
           ? createOpenAI({ apiKey }).responses(options.model)
           : createAnthropic({ apiKey })(options.model),
       ...(options.provider === "openai" ? { providerOptions: { openai: { store: false } } } : {}),
-      system: SYSTEM,
+      system: localizedAiSystem(SYSTEM),
       messages: [
         {
           role: "user",
