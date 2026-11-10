@@ -63,7 +63,15 @@ export const runAi = async (prompt: string, maxOutputTokens = 1200): Promise<str
       prompt,
       maxOutputTokens,
     });
-    if (!result.text.trim()) throw new Error("AI returned no text. Check the model or try again.");
+    if (!result.text.trim()) {
+      console.error("AI returned empty text", {
+        provider,
+        finishReason: result.finishReason,
+        outputTokens: result.usage.outputTokens,
+        reasoningPresent: Boolean(result.reasoningText),
+      });
+      throw new Error("AI returned no text. Check the model or try again.");
+    }
     return result.text;
   } catch (error) {
     if (RetryError.isInstance(error)) error = error.lastError;
@@ -71,6 +79,10 @@ export const runAi = async (prompt: string, maxOutputTokens = 1200): Promise<str
       provider,
       status: APICallError.isInstance(error) ? error.statusCode : undefined,
       type: error instanceof Error ? error.name : typeof error,
+      code:
+        error instanceof Error && error.message === "AI returned no text. Check the model or try again."
+          ? "empty-text"
+          : "provider-or-sdk",
     });
     // Provider error messages can contain key fragments or request data. Never relay them.
     if (APICallError.isInstance(error)) {
